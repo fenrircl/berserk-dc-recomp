@@ -17,10 +17,9 @@ game files/
 *.cue
 1ST_READ.BIN
 
-# Generated
+# Generated game translation units (kept out; runtime sources ARE tracked)
+src/game/
 *.json
-*.c
-*.h
 
 # IDE
 .vs/
