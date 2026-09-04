@@ -1,0 +1,8 @@
+# dcrecomp upstream — reference only
+
+This directory stalls the runtime C sources and headers copied verbatim
+from the dcrecomp framework (MIT) so this project can be developed and
+versioned independently.
+
+For the original build system, see:
+https://github.com/sp00nznet/dcrecomp/blob/master/CMakeLists.txt
