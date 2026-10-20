@@ -1,26 +1,41 @@
 # Engine patches
 
 dreamcomp is a separate checkout, so the engine changes this port needs are kept here as patches.
-Applied to a clean dreamcomp at the revision listed below, they reproduce the build this port was
-tested with.
+Apply them in order to a clean dreamcomp; they reproduce the engine this port was tested with.
 
-## `stride-textures.patch`
+## 1. `stride-textures.patch`
 
-**Fixed:** linear "stride" textures are read at `(TEXT_CONTROL & 31) * 32` texels per row instead
-of the texture's declared width. Berserk's FMVs are 320x240 MPEG-1 frames displayed through a
-512x256 stride texture; without this, every row after the first is read 384 bytes late and the
-video comes out as green/pink noise.
+Linear "stride" textures are read at `(TEXT_CONTROL & 31) * 32` texels per row instead of the
+texture's declared width. Berserk's FMVs are 320x240 MPEG-1 frames displayed through a 512x256
+stride texture; without this, every row after the first is read 384 bytes late and the video comes
+out as green/pink noise.
 
 - Base: dreamcomp `2f7b7c3` (2026-10-20).
-- Local branch with the same change: `berserk-video-stride` (`e8bbe64`).
+- Commit on the local branch: `e8bbe64`.
 - Touches: `TextureInfo::row_stride`, `decode_texture`, `size_bytes`, `Frame::text_control`,
   the texture-cache key and `boot_main`'s per-frame `TEXT_CONTROL` read.
 
-Apply from the dreamcomp checkout:
+## 2. `settings-panel.patch`
+
+Adds `HostControls::open_settings`. It only sets a flag on `Live`; `pump_menu()` consumes it on the
+guest thread and opens the panel there. Calling `open_menu()` directly from a guest hook crashed,
+so the request is deferred.
+
+- Base: `e8bbe64` (apply after patch 1).
+- Commit on the local branch: `6301683`.
+- Touches: `engine/runtime/include/dream/runtime/host_ext.h`, `engine/runtime/boot/boot_main.cpp`.
+
+## Applying
+
+From the dreamcomp checkout, in order:
 
 ```powershell
 git am <path to this repo>\docs\engine-patches\stride-textures.patch
+git am <path to this repo>\docs\engine-patches\settings-panel.patch
 ```
 
-Verified on the JP v1.001 disc: the ASCII/opening FMVs show real frames and the first combat
-scene is unchanged.
+The same changes live on the local `berserk-video-stride` branch (`6301683`). They are port-support
+changes, generic enough to upstream; the patch files are also the fallback for a fresh checkout.
+
+Verified on the JP v1.001 disc: the ASCII/opening FMVs show real frames, the first combat scene is
+unchanged, and the panel opens over the main menu with `Escape`.

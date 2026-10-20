@@ -1,0 +1,57 @@
+From 6301683a144e86a61cf0e8948054eede7b6b4d9b Mon Sep 17 00:00:00 2001
+From: Cristofer <cristofer.miranda@gmail.com>
+Date: Tue, 20 Oct 2026 13:25:46 -0300
+Subject: [PATCH] host: let a guest hook request the in-game settings panel
+
+HostControls::open_settings sets a flag on Live; pump_menu consumes it on the guest thread and opens the panel there. Calling open_menu directly from inside guest code crashed, so the request is deferred to the next poll. Needed by port hooks that turn a game menu entry into the port's settings screen.
+---
+ engine/runtime/boot/boot_main.cpp               | 6 ++++++
+ engine/runtime/include/dream/runtime/host_ext.h | 1 +
+ 2 files changed, 7 insertions(+)
+
+diff --git a/engine/runtime/boot/boot_main.cpp b/engine/runtime/boot/boot_main.cpp
+index 9f7e968..72a1415 100644
+--- a/engine/runtime/boot/boot_main.cpp
++++ b/engine/runtime/boot/boot_main.cpp
+@@ -796,6 +796,8 @@ struct Live {
+     // Its keys are the launcher's fixed ones, never the player's: rebinding the game's buttons can
+     // never take away the way back out. Called once per poll, running or paused.
+     void pump_menu() {
++        if (settings_requested.exchange(false) && !menu.is_open())
++            open_menu();
+         using dream::render::vk::Control;
+         // Escape does two things a keystroke apart: leave the screen, then end the run. The key has
+         // to be let go before it means the second one. Without this, closing the screen with escape
+@@ -1113,6 +1115,9 @@ struct Live {
+     // looks (frames actually presented per second of wall clock) and whether it is keeping up
+     // (guest time elapsed per second of wall clock, where 1.00x is the console's own pace).
+     bool show_fps = false;
++    // Set by a guest hook (the game's menu) and consumed by pump_menu, so the panel never opens
++    // from inside guest code.
++    std::atomic<bool> settings_requested{false};
+     bool input_polled = false, window_open = true;  // poll_input() (dreamcomp)
+     DisplaySync sync;                                // --sync-display (dreamcomp)
+     // The binding screen (F1, or a pad's select button). The guest is stopped while it is up, so
+@@ -2391,6 +2396,7 @@ int main(int argc, char** argv) {
+                 if (!lp->menu.is_open())
+                     lp->open_menu();
+             };
++            hc.open_settings = [lp] { lp->settings_requested = true; };
+             hc.set_rumble = [lp](float v) { lp->window.rumble_scale = std::clamp(v, 0.0f, 1.0f); };
+             hc.set_fullscreen = [lp](bool on) { lp->window.set_fullscreen(on); };
+             hc.fullscreen = [lp] { return lp->window.fullscreen(); };
+diff --git a/engine/runtime/include/dream/runtime/host_ext.h b/engine/runtime/include/dream/runtime/host_ext.h
+index 8d6db42..cb7fede 100644
+--- a/engine/runtime/include/dream/runtime/host_ext.h
++++ b/engine/runtime/include/dream/runtime/host_ext.h
+@@ -91,6 +91,7 @@ public:
+ struct HostControls {
+     std::function<void()> quit;                  // end the run, as closing the window does
+     std::function<void()> open_bindings;         // the controller binding screen (F1)
++    std::function<void()> open_settings;         // the settings panel over the running game
+     std::function<void(float)> set_rumble;       // 0..1
+     std::function<void(bool)> set_fullscreen;
+     std::function<bool()> fullscreen;
+-- 
+2.53.0.windows.1
+

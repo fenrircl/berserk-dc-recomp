@@ -49,4 +49,10 @@ dest = 0x8C000600
 # repeat until `untranslated call targets: 0` and `unmapped memory accesses: 0`.
 
 [hooks]
+# Boot movie sequence: it picks ASCII.SFD / YUKES.SFD / BERSERK2.SFD and waits for the player.
+# Complete the menu state as well as bypassing playback (JP v1.001).
+0x8C03E38A = "skip_intro_movie@entry"
+0x8C03ED2C = "start_title"
+# Main menu update: choosing PRIZE BOX (index 3) opens the port's settings panel.
+0x8C03F17E = "menu_settings"
 # Subtitle override / widescreen land here in phase 4-5 (docs/START-HERE.md, section 7).
