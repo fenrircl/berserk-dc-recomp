@@ -7,7 +7,10 @@
 #include "dreamcomp/port.h"
 #include "dreamcomp/hook.h"
 #include "dream/runtime/host_ext.h"
+#include "dream/runtime/sh4/abi.h"
 #include "dreamcomp/settings.h"
+
+#include "display_menu.h"
 
 #include <cstdio>
 
@@ -36,40 +39,66 @@ const dreamcomp::PortInfo kInfo = [] {
 
 dreamcomp::RegisterPort g_register(kInfo);
 
-// Main-menu state captured by the hook below: the task pointer and the two state words the
-// selection writes. The cursor lives at 0x8C11E220 (index 3 = PRIZE BOX).
-std::uint32_t g_menu_task = 0;
-std::uint32_t g_menu_state64 = 0;
-std::uint32_t g_menu_state68 = 0;
+// Original guest cursor: 0..3. The additional PC row is owned by display_menu.
 std::uint32_t g_menu_index = 0;
+std::uint32_t g_menu_shown = 0xFFFFFFFFu;  // the index last printed, to follow the cursor
+std::uint32_t g_task = 0, g_state64 = 0, g_state68 = 0, g_cursor = 0;
+bool g_restore_menu = false;
 
 }  // namespace
 
-// Reuse the otherwise-unused PRIZE BOX entry as SETTINGS: when it is chosen, put the menu state
-// back and open the port's settings panel instead of entering the gallery.
+// PC OPTIONS is a fifth row; the four original entries keep their guest behaviour.
 DC_HOOK_ENTRY(menu_settings) {
-    g_menu_task = 0;
+    g_restore_menu = false;
     const std::uint32_t task = c.r[4];
     if (task < 0x8C000000u || task >= 0x8D000000u)
         return false;
-    g_menu_task = task;
-    g_menu_state64 = m.read32(task + 64);
-    g_menu_state68 = m.read32(task + 68);
     g_menu_index = m.read32(0x8C11E220);
+    if (g_menu_index != g_menu_shown) {
+        g_menu_shown = g_menu_index;
+        std::fprintf(stderr, "[berserk] menu index %u\n", g_menu_index);
+    }
+    berserk::display_menu::handle_main_menu(m);
+    berserk::display_menu::handle_input(m);
+    if (berserk::display_menu::is_open()) {
+        // The page owns the pad while it is up: it reads it and moves its own cursor, and the
+        // original menu is left without buttons so it neither moves nor selects anything. The
+        // menu still runs and still draws, so the guest keeps rendering and the page shows up.
+        berserk::display_menu::neutralise_pad(m);
+    }
+    g_restore_menu = berserk::display_menu::input_hidden();
+    if (g_restore_menu) {
+        g_task = task;
+        g_state64 = m.read32(task + 64);
+        g_state68 = m.read32(task + 68);
+        g_cursor = m.read32(0x8C11E220);
+    }
     return false;
 }
 
 DC_HOOK_EXIT(menu_settings) {
-    if (!g_menu_task)
-        return;
-    if (g_menu_index != 3 || m.read32(g_menu_task + 68) != 9)
-        return;
-    std::fprintf(stderr, "[berserk] menu index 3 -> settings\n");
-    m.write32(g_menu_task + 64, g_menu_state64);
-    m.write32(g_menu_task + 68, g_menu_state68);
-    auto& hc = dream::host::host_controls();
-    if (hc.open_settings)
-        hc.open_settings();
+    // A pad poll can occur inside the guest handler after its entry hook.
+    // Restore its state too, so such a poll cannot select/move behind our page.
+    if (g_restore_menu) {
+        m.write32(g_task + 64, g_state64);
+        m.write32(g_task + 68, g_state68);
+        m.write32(0x8C11E220, g_cursor);
+    }
+    berserk::display_menu::sync_main_cursor(m.read32(0x8C11E220));
+    berserk::display_menu::restore_pad(m);
+    if (berserk::display_menu::take_move_sound()) {
+        // Exactly the original cursor sound: menu handler 0x0C03F650 calls
+        // this sound service with effect 3. Preserve the caller's registers.
+        const auto saved = c;
+        c.r[4] = m.read32(0x8C11DFE8u);
+        c.r[5] = 3;
+        c.r[6] = 0;
+        dream::sh4::call_indirect(c, m, 0x8C039BF0u);
+        const auto cycles = c.cycles, next_event = c.next_event;
+        c = saved;
+        c.cycles = cycles;
+        c.next_event = next_event;
+    }
 }
 
 DC_HOOK_ENTRY(skip_intro_movie) {

@@ -1,5 +1,9 @@
 # Main menu hook and port settings entry
 
+Current implementation: see [display-menu.md](display-menu.md). PC OPTIONS is
+now an additional fifth row; PRIZE BOX retains its gallery behaviour. The notes
+below describe the earlier replacement/overlay prototype.
+
 Measured on the JP v1.001 executable, 2026-10-20. The goal is a PC-style settings entry in the
 game's own main menu instead of a separate launcher.
 

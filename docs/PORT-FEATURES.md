@@ -3,62 +3,31 @@
 What the port is meant to be: a native PC game, not a launcher in front of an emulator. The
 translated game code is the game; this repository adds the PC-side behaviour around it.
 
-## Requested feature set
+## Implemented PC menu
 
-| Feature | State | Where |
-|---|---|---|
-| Japanese audio | **works** (JP disc is the reference) | AICA/ADX path already covers it |
-| English/Spanish subtitles, configurable | subtitles are `.TEX` images in the JP disc | mod route now; native text later |
-| PC-style options menu | panel exists over the game; menu-entry hook in progress | RmlUi overlay + `menu_settings` hook |
-| Resolution scaling | **works**, 1-8x live | Graphics tab / `set_render_scale` |
-| Filters | hardware texture filtering is emulated; post filters not yet | `present.frag` |
-| Widescreen | engine supports 4:3/16:9/21:9/32:9 + HUD correction | `PortInfo::widescreen`, `hud_overrides.ini` |
-| HD texture packs | **works** | dump/pack by content hash |
-| Mods (voices, subtitles, data) | **works** | `--mod`, `mods = ...` |
-| Windows x64 | **works** | Vulkan + SDL3 |
-| Linux x64 / Steam Deck | builds headless; window needs SDL3 + glslc | Vulkan + SDL3 |
-| macOS | engine develops on MoltenVK; port unverified | MoltenVK + SDL3 |
+A fifth **PC OPTIONS** entry preserves the original **PRIZE BOX** gallery. It uses
+resident OPTION textures and the game's own FONT.TEX alphabet, with grey styling
+and the original navigation sound. See [implementation notes](findings/display-menu.md).
 
-## Language
+- Windowed / borderless fullscreen and window resolution.
+- Internal rendering scale 1-8x.
+- Original, nearest or bilinear texture filtering.
+- Optional widescreen crop with HUD safe area. This crops the view; a true widened
+  camera remains future work. Menus and movies retain 4:3.
+- English / Castilian menus and subtitles from the user's local translation packs;
+  switching language requires restarting the game.
+- Master volume and keyboard/controller bindings.
 
-The JP release ships Japanese voices and **image subtitles** stored in `.TEX` packs. The US/PAL
-releases replaced the JP track with an English dub and no subtitle overlay.
+Both translation packs can be prepared with `tools/prepare_languages.py`; see
+[language setup and credits](findings/languages.md). Derived game assets remain
+local and are excluded from version control. The original pinned executable is
+retained; the English patch's audited data-only changes are applied at startup.
 
-**Route A - mods (fast).** Apply an existing translation to the JP disc, extract the changed
-`.TEX` files and install them as a mod (`mods/english`, `mods/spanish`). Spanish is a repaint of
-the subtitle images. No code; the language selector is the mod selection. Accents are free because
-the text is an image.
+The boot videos and the long opening cinematic are skipped automatically to reach
+the title menu. Native story playback after starting a game remains available.
 
-**Route B - native subtitles (port quality).** Hook the subtitle quad, skip the original and draw
-text with a real font. Needs a timing table and a transcription/OCR of the JP lines. Gives any
-language, size and line breaking at native resolution.
-
-**Voices.** JP is the default. The English dub can be extracted from a US/PAL disc and served as a
-mod over the JP disc. Game data stays with the user.
-
-## Options menu
-
-The in-game panel is the PC menu: General / Controls / Graphics / Sound / Mods, opened with
-`Escape` or a pad's Select. `docs/findings/menu-settings.md` covers the hook that opens it from the
-game's own main menu by reusing the unused PRIZE BOX entry.
-
-Planned tabs/rows:
-
-- **Display**: resolution (1-8), fullscreen, aspect (4:3/16:9/21:9), filter.
-- **Audio**: master volume, voice language.
-- **Subtitles**: language, size, background.
-- **Mods**: texture pack, voice pack, load order.
-- **Controls**: bindings.
-
-## Display
-
-- **Resolution**: live `set_render_scale`, no restart.
-- **Widescreen**: `PortInfo::widescreen` widens the view (anamorphic). HUD correction and the F1/F2
-  editor are engine features; Berserk needs `hud_overrides.ini` for its bars and text. Watch the
-  per-game culling limit described in `dreamcomp` playbook T23.
-- **Filters**: the hardware's per-texture bilinear/trilinear is emulated from the TSP bits. A
-  post-process filter (sharp-bilinear, CRT/scanlines, FXAA) belongs in `present.frag` and a
-  `filter` setting.
+On Windows, double-click starts the game directly without a console window. Pass
+`--debug` to show the log console and open the launcher before starting the game.
 
 ## HD texture packs and mods
 
@@ -86,11 +55,7 @@ subtitles. Neither packs nor mods are committed: they are derived game data.
 Packaging: binary + SDL3 runtime + `frontend/` assets, with `RPATH=$ORIGIN` on Linux. No disc
 image, textures, voices or subtitles in any package.
 
-## Order
+## Remaining work
 
-1. Close the remaining interpreted call targets and produce a release build.
-2. Finish the settings entry and restyle the panel.
-3. Widescreen + HUD overrides for Berserk.
-4. Resolution/filter settings.
-5. Subtitle mods (EN/ES), then native subtitles.
-6. Texture-pack pipeline and cross-platform packaging/CI.
+True camera widescreen, additional post-processing filters, a full story playthrough
+of both translations, and cross-platform packaging remain to be validated.
