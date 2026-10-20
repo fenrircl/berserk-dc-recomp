@@ -83,15 +83,22 @@ Exact steps, including the disc survey and the boot loop, are in
 [`docs/START-HERE.md`](docs/START-HERE.md). Install and verification on Windows:
 [`docs/SETUP-WINDOWS.md`](docs/SETUP-WINDOWS.md).
 
+## Startup
+
+The JP v1.001 port skips the startup logos and opening movie by default and advances past
+the title prompt to the main menu. It does not select NEW GAME. To watch the normal startup,
+pass `--set skip_intro=false` to `berserk-recomp.exe` (or add `skip_intro = false` to the
+port's `settings.ini`). This only affects startup; later story movies play normally.
+
 ## Project Structure
 
 ```
 berserk-dc-recomp/
 ├── CMakeLists.txt        dreamcomp port entry point
 ├── game/                 berserk.toml (release SHA-1, relocations, hooks) + target
-├── src/berserk.cpp       PortInfo: what the port tells the framework
-├── docs/                 START-HERE (runbook), SETUP-WINDOWS, RESEARCH
-├── tools/                preflight.ps1 (toolchain check)
+├── src/berserk.cpp       PortInfo, boot/menu hooks, settings entry
+├── docs/                 START-HERE, SETUP-WINDOWS, RESEARCH, PORT-FEATURES, findings/, engine-patches/, CODE-GRAPH
+├── tools/                preflight.ps1 (toolchain check), graphify.py (dependency graph)
 ├── runtime/              legacy dcrecomp HAL — reference only, not compiled
 └── README.md
 ```

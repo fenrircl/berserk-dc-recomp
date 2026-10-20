@@ -1,0 +1,543 @@
+{
+  "root": ".",
+  "generated_by": "tools/graphify.py",
+  "nodes": [
+    {
+      "id": "CMakeLists.txt",
+      "layer": "build",
+      "lines": 17,
+      "edges": [
+        {
+          "target": "game/CMakeLists.txt",
+          "kind": "subdir"
+        }
+      ]
+    },
+    {
+      "id": "README.md",
+      "layer": "docs",
+      "lines": 105,
+      "edges": []
+    },
+    {
+      "id": "game/CMakeLists.txt",
+      "layer": "config",
+      "lines": 7,
+      "edges": [
+        {
+          "target": "src/berserk.cpp",
+          "kind": "builds"
+        }
+      ]
+    },
+    {
+      "id": "game/berserk.toml",
+      "layer": "config",
+      "lines": 32,
+      "edges": []
+    },
+    {
+      "id": "runtime/include/hal/arm7.h",
+      "layer": "hal-headers",
+      "lines": 82,
+      "edges": []
+    },
+    {
+      "id": "runtime/include/hal/dc_bios.h",
+      "layer": "hal-headers",
+      "lines": 54,
+      "edges": [
+        {
+          "target": "runtime/include/recompiler/sh4_cpu.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/include/hal/dc_hardware.h",
+      "layer": "hal-headers",
+      "lines": 214,
+      "edges": []
+    },
+    {
+      "id": "runtime/include/hal/naomi_io.h",
+      "layer": "hal-headers",
+      "lines": 96,
+      "edges": []
+    },
+    {
+      "id": "runtime/include/hal/pvr2.h",
+      "layer": "hal-headers",
+      "lines": 97,
+      "edges": []
+    },
+    {
+      "id": "runtime/include/platform/platform.h",
+      "layer": "platform-headers",
+      "lines": 42,
+      "edges": [
+        {
+          "target": "runtime/include/hal/dc_hardware.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/include/recompiler/sh4_cpu.h",
+      "layer": "recompiler-headers",
+      "lines": 275,
+      "edges": []
+    },
+    {
+      "id": "runtime/include/recompiler/sh4_task.h",
+      "layer": "recompiler-headers",
+      "lines": 59,
+      "edges": [
+        {
+          "target": "runtime/include/recompiler/sh4_cpu.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/src/arm7.c",
+      "layer": "runtime",
+      "lines": 688,
+      "edges": [
+        {
+          "target": "runtime/include/hal/arm7.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/hal/dc_hardware.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/src/dc_bios.c",
+      "layer": "runtime",
+      "lines": 361,
+      "edges": [
+        {
+          "target": "runtime/include/hal/dc_bios.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/hal/dc_hardware.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/src/dc_hardware.c",
+      "layer": "runtime",
+      "lines": 1322,
+      "edges": [
+        {
+          "target": "runtime/include/hal/dc_hardware.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/hal/arm7.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/hal/pvr2.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/recompiler/sh4_cpu.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/platform/platform.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/src/naomi_io.c",
+      "layer": "runtime",
+      "lines": 216,
+      "edges": [
+        {
+          "target": "runtime/include/hal/naomi_io.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/src/platform_sdl2.c",
+      "layer": "runtime",
+      "lines": 223,
+      "edges": [
+        {
+          "target": "runtime/include/recompiler/sh4_cpu.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/hal/dc_hardware.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/src/pvr2_render.c",
+      "layer": "runtime",
+      "lines": 380,
+      "edges": [
+        {
+          "target": "runtime/include/hal/pvr2.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/recompiler/sh4_cpu.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/src/pvr2_ta.c",
+      "layer": "runtime",
+      "lines": 518,
+      "edges": [
+        {
+          "target": "runtime/include/hal/pvr2.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/hal/dc_hardware.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/src/sh4_cpu.c",
+      "layer": "runtime",
+      "lines": 1225,
+      "edges": [
+        {
+          "target": "runtime/include/recompiler/sh4_cpu.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/hal/dc_hardware.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/hal/pvr2.h",
+          "kind": "include"
+        },
+        {
+          "target": "runtime/include/platform/platform.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "runtime/src/sh4_task.c",
+      "layer": "runtime",
+      "lines": 183,
+      "edges": [
+        {
+          "target": "runtime/include/recompiler/sh4_task.h",
+          "kind": "include"
+        }
+      ]
+    },
+    {
+      "id": "src/berserk.cpp",
+      "layer": "port",
+      "lines": 21,
+      "edges": []
+    },
+    {
+      "id": "tools/extract_gdi.py",
+      "layer": "tools",
+      "lines": 256,
+      "edges": []
+    },
+    {
+      "id": "tools/generate_stubs.py",
+      "layer": "tools",
+      "lines": 139,
+      "edges": []
+    },
+    {
+      "id": "tools/graphify.py",
+      "layer": "tools",
+      "lines": 515,
+      "edges": []
+    },
+    {
+      "id": "tools/preflight.ps1",
+      "layer": "tools",
+      "lines": 113,
+      "edges": []
+    },
+    {
+      "id": "tools/sh4_disasm.py",
+      "layer": "tools",
+      "lines": 916,
+      "edges": []
+    },
+    {
+      "id": "tools/static_recompile.py",
+      "layer": "tools",
+      "lines": 1564,
+      "edges": []
+    }
+  ],
+  "edges": [
+    {
+      "source": "runtime/include/hal/dc_bios.h",
+      "target": "runtime/include/recompiler/sh4_cpu.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/include/platform/platform.h",
+      "target": "runtime/include/hal/dc_hardware.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/include/recompiler/sh4_task.h",
+      "target": "runtime/include/recompiler/sh4_cpu.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/arm7.c",
+      "target": "runtime/include/hal/arm7.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/arm7.c",
+      "target": "runtime/include/hal/dc_hardware.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/dc_bios.c",
+      "target": "runtime/include/hal/dc_bios.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/dc_bios.c",
+      "target": "runtime/include/hal/dc_hardware.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/dc_hardware.c",
+      "target": "runtime/include/hal/dc_hardware.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/dc_hardware.c",
+      "target": "runtime/include/hal/arm7.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/dc_hardware.c",
+      "target": "runtime/include/hal/pvr2.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/dc_hardware.c",
+      "target": "runtime/include/recompiler/sh4_cpu.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/dc_hardware.c",
+      "target": "runtime/include/platform/platform.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/naomi_io.c",
+      "target": "runtime/include/hal/naomi_io.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/platform_sdl2.c",
+      "target": "runtime/include/recompiler/sh4_cpu.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/platform_sdl2.c",
+      "target": "runtime/include/hal/dc_hardware.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/pvr2_render.c",
+      "target": "runtime/include/hal/pvr2.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/pvr2_render.c",
+      "target": "runtime/include/recompiler/sh4_cpu.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/pvr2_ta.c",
+      "target": "runtime/include/hal/pvr2.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/pvr2_ta.c",
+      "target": "runtime/include/hal/dc_hardware.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/sh4_cpu.c",
+      "target": "runtime/include/recompiler/sh4_cpu.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/sh4_cpu.c",
+      "target": "runtime/include/hal/dc_hardware.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/sh4_cpu.c",
+      "target": "runtime/include/hal/pvr2.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/sh4_cpu.c",
+      "target": "runtime/include/platform/platform.h",
+      "kind": "include"
+    },
+    {
+      "source": "runtime/src/sh4_task.c",
+      "target": "runtime/include/recompiler/sh4_task.h",
+      "kind": "include"
+    },
+    {
+      "source": "game/CMakeLists.txt",
+      "target": "src/berserk.cpp",
+      "kind": "builds"
+    },
+    {
+      "source": "CMakeLists.txt",
+      "target": "game/CMakeLists.txt",
+      "kind": "subdir"
+    }
+  ],
+  "external": {
+    "C standard library": [
+      "stdbool.h",
+      "stdint.h",
+      "stdio.h",
+      "stdlib.h",
+      "string.h"
+    ],
+    "OpenGL / GLEW": [
+      "GL/glew.h"
+    ],
+    "SDL2/SDL3": [
+      "SDL.h",
+      "SDL_opengl.h"
+    ],
+    "Win32 API": [
+      "windows.h"
+    ],
+    "Win32 API (dbghelp)": [
+      "dbghelp.h"
+    ],
+    "dreamcomp engine (external checkout)": [
+      "dreamcomp/port.h"
+    ]
+  },
+  "external_edges": [
+    {
+      "source": "src/berserk.cpp",
+      "target": "dreamcomp engine (external checkout)"
+    },
+    {
+      "source": "runtime/include/hal/arm7.h",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/include/hal/dc_bios.h",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/include/hal/dc_hardware.h",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/include/hal/naomi_io.h",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/include/hal/pvr2.h",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/include/platform/platform.h",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/include/recompiler/sh4_cpu.h",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/src/arm7.c",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/src/dc_bios.c",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/src/dc_hardware.c",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/src/naomi_io.c",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/src/platform_sdl2.c",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/src/platform_sdl2.c",
+      "target": "Win32 API"
+    },
+    {
+      "source": "runtime/src/platform_sdl2.c",
+      "target": "SDL2/SDL3"
+    },
+    {
+      "source": "runtime/src/pvr2_render.c",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/src/pvr2_render.c",
+      "target": "OpenGL / GLEW"
+    },
+    {
+      "source": "runtime/src/pvr2_ta.c",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/src/sh4_cpu.c",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/src/sh4_cpu.c",
+      "target": "Win32 API"
+    },
+    {
+      "source": "runtime/src/sh4_cpu.c",
+      "target": "Win32 API (dbghelp)"
+    },
+    {
+      "source": "runtime/src/sh4_task.c",
+      "target": "C standard library"
+    },
+    {
+      "source": "runtime/src/sh4_task.c",
+      "target": "Win32 API"
+    }
+  ]
+}

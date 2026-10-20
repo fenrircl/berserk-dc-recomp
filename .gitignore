@@ -53,6 +53,8 @@ src/game/
 include/game/
 game/suggested.toml
 *.json
+# ...except the committed code graph, so `graphify.py --check` works in a fresh clone
+!docs/code-graph.json
 
 # IDE
 .vs/
