@@ -3,7 +3,8 @@
 Static ahead-of-time recompilation of **Sword of the Berserk: Guts' Rage**
 (Dreamcast, 2000) for modern Windows PCs.
 
-> **Status: Planning / Early Research**
+> **Status: Early research.** Runbook: [`docs/START-HERE.md`](docs/START-HERE.md)
+> Base framework: [dreamcomp](https://github.com/danielgomesvieira2000/dreamcomp) (GPL-2.0).
 
 ## What this project is
 
@@ -22,7 +23,7 @@ ahead-of-time into C, compiled natively — no emulator or BIOS required.
 | Field | Value |
 |-------|-------|
 | Title | Sword of the Berserk: Guts' Rage |
-| JP Title | バーサーク 刃ろ是最強伝説 ~ワスレバナノ~ |
+| JP Title | ベルセルク 千年帝国の鷹篇 喪失花の章 |
 | Platform | Sega Dreamcast |
 | Developer | Yuke's |
 | Publisher | Eidos Interactive |
@@ -43,46 +44,43 @@ ahead-of-time into C, compiled natively — no emulator or BIOS required.
 ## Recompilation Pipeline
 
 ```
-Dreamcast GD-ROM (GDI/CHD)
+Disc image (.gdi / .cue / .chd)
     │
-    ├─ extract_gdi.py            Extract data track
-    │
-    ▼
-1ST_READ.BIN (SH-4 executable)
-    │
-    ├─ sh4_disasm.py             Find functions (prologue detection + call graph)
+    ├─ dcdisc info / ls          identify release, boot file, assets
     │
     ▼
-function_map.json
+1ST_READ.BIN (SH-4 executable, pinned by SHA-1)
     │
-    ├─ static_recompile.py       Translate SH-4 → C (instruction-by-instruction)
-    │
-    ▼
-game_code_*.c + game_functions.h + dispatch_table.c
-    │
-    ├─ generate_stubs.py         Fill in undefined references
+    ├─ dream-translate           SH-4 → C++ (with per-game relocations/symbols)
     │
     ▼
-Compile with CMake → Native executable
+generated C++ + dreamcomp engine (Vulkan PVR2, AICA, GD-ROM, Maple)
+    │
+    ├─ dc.py build / report      drive untranslated & unmapped counters to 0
+    │
+    ▼
+Native executable + launcher (settings, controls, mods, texture packs)
 ```
 
 ## Tools / Frameworks
 
 | Tool | Purpose | License |
 |------|---------|---------|
-| [dcrecomp](https://github.com/sp00nznet/dcrecomp) | Dreamcast/Naomi SH-4 → C recompiler | MIT |
-| [KatanaRecomp](https://github.com/sonicfreak1337/KatanaRecomp) | Dreamcast SH-4 → C++ recompiler (IR-based) | Pre-alpha |
-| [Flycast](https://github.com/flyinghead/flycast) | Reference Dreamcast/Naomi emulator | GPLv2 |
+| [dreamcomp](https://github.com/danielgomesvieira2000/dreamcomp) | Port framework: translator, Vulkan PVR2, AICA, GD-ROM, Maple, launcher, mods | GPL-2.0 |
+| [dream-recomp](https://github.com/phobos665/dream-recomp) | Engine vendored by dreamcomp (SH-4 → C++, emulated hardware) | GPL-2.0 |
+| [dcrecomp](https://github.com/sp00nznet/dcrecomp) | Thin HAL used by the earlier scaffold — reference only | MIT |
+| [Flycast](https://github.com/flyinghead/flycast) | Hardware behaviour reference (PVR2, AICA, Sofdec/MPEG) | GPL-2.0 |
 
 ## Building
 
-Requirements: CMake 3.16+, C11 compiler, SDL2, OpenGL 3.3.
+The port builds inside a `dreamcomp` checkout; this repository holds only the game-specific parts
+(config, hooks, docs), not the engine.
 
-```bash
-mkdir build && cd build
-cmake ..
-cmake --build . --config Release
-```
+- Windows x64 (tested path): VS 2022 Build Tools, clang-cl, CMake, Ninja, Vulkan SDK.
+- Linux x64: gcc 15 / clang, Vulkan, `libsdl3-dev`, `glslc`.
+
+Exact steps, including the disc survey and the boot loop, are in
+[`docs/START-HERE.md`](docs/START-HERE.md).
 
 ## Project Structure
 

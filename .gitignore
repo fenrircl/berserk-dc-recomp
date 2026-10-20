@@ -9,6 +9,10 @@ build/
 
 # Game data (user must provide)
 game files/
+extracted/
+mods/
+texture_dump/
+texture_packs/
 *.gdi
 *.cdi
 *.chd
