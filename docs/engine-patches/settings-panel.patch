@@ -1,4 +1,4 @@
-From 6301683a144e86a61cf0e8948054eede7b6b4d9b Mon Sep 17 00:00:00 2001
+From 21957d85885c221b831f841f91516b5df0a019ab Mon Sep 17 00:00:00 2001
 From: Cristofer <cristofer.miranda@gmail.com>
 Date: Tue, 20 Oct 2026 13:25:46 -0300
 Subject: [PATCH] host: let a guest hook request the in-game settings panel

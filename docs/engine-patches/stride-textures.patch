@@ -1,4 +1,4 @@
-From e8bbe6469a323b49d1afeff32d38d262cfafb62a Mon Sep 17 00:00:00 2001
+From 3c7644f13c1c1f604660f0a41ac0adf5a4931db1 Mon Sep 17 00:00:00 2001
 From: Cristofer <cristofer.miranda@gmail.com>
 Date: Tue, 20 Oct 2026 11:11:14 -0300
 Subject: [PATCH] render: read stride textures at TEXT_CONTROL's row pitch
@@ -12,8 +12,9 @@ Berserk's FMVs are 320x240 MPEG-1 decoded by the game into a 512x256 stride text
  engine/render/src/texture.cpp                 | 26 ++++++++++++-------
  engine/render/src/vk/renderer.cpp             | 16 +++++++-----
  engine/render/src/vk/texture_cache.cpp        | 11 +++++---
+ engine/render/tests/test_texture.cpp          | 25 ++++++++++++++++++
  engine/runtime/boot/boot_main.cpp             |  3 +++
- 8 files changed, 51 insertions(+), 22 deletions(-)
+ 9 files changed, 76 insertions(+), 22 deletions(-)
 
 diff --git a/engine/render/include/dream/render/display_list.h b/engine/render/include/dream/render/display_list.h
 index eef04a3..fc8d9a4 100644
@@ -275,6 +276,42 @@ index 913c441..8d9f823 100644
          ++failed;
          entries_.emplace(key, std::move(e));  // remember the failure so it is not retried per frame
          return VK_NULL_HANDLE;
+diff --git a/engine/render/tests/test_texture.cpp b/engine/render/tests/test_texture.cpp
+index 1a060f2..2673366 100644
+--- a/engine/render/tests/test_texture.cpp
++++ b/engine/render/tests/test_texture.cpp
+@@ -104,6 +104,31 @@ TEST_CASE("texture: the word pair describes size, format and layout") {
+     CHECK_FALSE(describe_texture(make_tcw(0, 7), make_tsp(0, 0), 0, info));
+ }
+ 
++TEST_CASE("texture: a stride texture reads rows at TEXT_CONTROL's pitch") {
++    auto v = vram();
++    TextureInfo info;
++    // RGB565, linear, StrideSel set (TCW bit 25): declared 16x8, row pitch 32 texels.
++    const u32 tcw = make_tcw(0, 1, /*twiddled=*/false) | (1u << 25);
++    REQUIRE(describe_texture(tcw, make_tsp(1, 0), 32, info));
++    CHECK(info.width == 16);
++    CHECK(info.height == 8);
++    CHECK_FALSE(info.twiddled);
++    CHECK(info.row_stride == 32);
++    CHECK(info.size_bytes() == 32 * 8 * 2);
++
++    // One marker per row, plus white padding after the declared width.
++    put16(v, (0 * 32 + 0) * 2, 0xF800u);  // row 0, red
++    put16(v, (1 * 32 + 1) * 2, 0x07E0u);  // row 1, green
++    put16(v, (2 * 32 + 2) * 2, 0x001Fu);  // row 2, blue
++    put16(v, (0 * 32 + 16) * 2, 0xFFFFu); // padding, must not be read
++    std::vector<u32> pixels;
++    std::uint32_t palette[1024] = {};
++    REQUIRE(decode_texture(info, v.data(), v.size(), palette, pixels));
++    CHECK(pixels[0] == 0xFF0000FFu);           // row 0 red
++    CHECK(pixels[1 * 16 + 1] == 0xFF00FF00u);  // row 1 green
++    CHECK(pixels[2 * 16 + 2] == 0xFFFF0000u);  // row 2 blue
++}
++
+ TEST_CASE("texture: the three 16-bit formats expand to full-range RGBA") {
+     auto v = vram();
+     TextureInfo info;
 diff --git a/engine/runtime/boot/boot_main.cpp b/engine/runtime/boot/boot_main.cpp
 index d0fab39..9f7e968 100644
 --- a/engine/runtime/boot/boot_main.cpp
