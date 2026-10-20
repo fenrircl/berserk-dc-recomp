@@ -38,16 +38,14 @@ The US and PAL discs are not thrown away: they become reference for mods/languag
 
 ## 1. Toolchain
 
-Windows x64 is the tested path (Vulkan + clang-cl). Linux compiles but the windowed build needs two
-packages.
+**Windows is the tested path — the step-by-step install, disk budget and a verification script are
+in [`docs/SETUP-WINDOWS.md`](docs/SETUP-WINDOWS.md).** Short version: VS 2022 Build Tools (C++
+workload + LLVM/Clang), CMake, Ninja, Python 3.10+, Vulkan SDK; build from "Developer PowerShell for
+VS 2022".
 
-**Windows:** Visual Studio 2022 Build Tools, LLVM (clang-cl), CMake, Ninja, Python 3.10+, Vulkan SDK
-(for `glslc`).
-
-**Linux (this host):**
-```sh
-sudo apt install libsdl3-dev glslc        # shaderc also acceptable
-```
+Linux compiles too but the windowed build needs `libsdl3-dev` and `glslc`. Do not plan the build on
+the small Hermes container: 3.7 GB RAM and 5.5 GB free are not enough for the engine plus generated
+code.
 
 ## 2. Get the framework and lay out the port
 
@@ -59,7 +57,9 @@ python tools/dc.py deps                   # SDL3 into .deps/ when needed
 ```
 
 The port lives at `dreamcomp/ports/berserk-recomp` (git-ignored inside dreamcomp: it is its own
-repository — this one). Create it by copying the *shape* of the working reference port
+repository — this one). **This repository already ships that skeleton** — `CMakeLists.txt`,
+`game/berserk.toml`, `game/CMakeLists.txt`, `src/berserk.cpp` — so only the `TBD` values are
+missing. Its shape is copied from the working reference port
 `danielgomesvieira2000/soulcalibur-recomp` (21 files, plays end to end):
 
 ```

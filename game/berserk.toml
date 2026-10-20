@@ -1,0 +1,32 @@
+# Sword of the Berserk: Guts' Rage -- dreamcomp game config.
+# Format: <dreamcomp>/engine/docs/game-config.md. Everything here must be MEASURED on your own
+# disc (docs/START-HERE.md phase 0); nothing from the disc is ever committed.
+#
+# The scaffold below boots nothing until the three TBD values are filled in:
+#   python -m dcdisc info "<disc>"      -> product, version, boot file
+#   sha1sum extracted/fs/1ST_READ.BIN   -> sha1_1st_read
+
+[game]
+id = "berserk"
+title = "Sword of the Berserk: Guts' Rage"
+region = "Japan"          # reference release: JP v1.001 (only release with subtitles)
+# product = "T-XXXXX"     # TBD: from `dcdisc info`
+
+[disc]
+# SHA-1 of the plain 1ST_READ.BIN the config was measured against. The launcher refuses any disc
+# whose boot file differs. "TBD" is a deliberate sentinel: it never matches, so a mismatched disc
+# fails loudly instead of booting into undefined behaviour.
+sha1_1st_read = "TBD"
+
+[binary]
+path = "extracted/fs/1ST_READ.BIN"   # written by `dc.py setup`, git-ignored
+load_address = 0x8C010000            # BIOS loads the file here
+link_address = 0x0C010000            # P0 alias the literal pools assume
+entry = 0x8C010000
+
+# [[relocations]] and [functions] extra are NOT written by hand.
+# `dc.py report --suggest-config ...` proposes them once the game boots; paste and repeat until
+# the report shows `untranslated call targets: 0` and `unmapped memory accesses: 0`.
+
+[hooks]
+# Subtitle override / widescreen land here in phase 4-5 (docs/START-HERE.md, section 7).

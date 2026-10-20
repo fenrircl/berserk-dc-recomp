@@ -80,16 +80,19 @@ The port builds inside a `dreamcomp` checkout; this repository holds only the ga
 - Linux x64: gcc 15 / clang, Vulkan, `libsdl3-dev`, `glslc`.
 
 Exact steps, including the disc survey and the boot loop, are in
-[`docs/START-HERE.md`](docs/START-HERE.md).
+[`docs/START-HERE.md`](docs/START-HERE.md). Install and verification on Windows:
+[`docs/SETUP-WINDOWS.md`](docs/SETUP-WINDOWS.md).
 
 ## Project Structure
 
 ```
 berserk-dc-recomp/
-├── docs/           Architecture notes, research, progress
-├── tools/          Extraction and recompilation scripts
-├── runtime/src/    Native hardware runtime implementations
-├── tests/          Validation tests
+├── CMakeLists.txt        dreamcomp port entry point
+├── game/                 berserk.toml (release SHA-1, relocations, hooks) + target
+├── src/berserk.cpp       PortInfo: what the port tells the framework
+├── docs/                 START-HERE (runbook), SETUP-WINDOWS, RESEARCH
+├── tools/                preflight.ps1 (toolchain check)
+├── runtime/              legacy dcrecomp HAL — reference only, not compiled
 └── README.md
 ```
 
