@@ -1,4 +1,14 @@
+# Build output
 build/
+build-*/
+out/
+.deps/
+.cache/
+CMakeUserPresets.json
+compile_commands.json
+*.log
+
+# Compiler / linker artifacts
 *.o
 *.obj
 *.a
@@ -6,23 +16,42 @@ build/
 *.exe
 *.dll
 *.so
+*.dylib
+*.pdb
+*.ilk
+*.exp
 
-# Game data (user must provide)
+# Game data (user must provide -- never commit)
 game files/
+discs/
 extracted/
 mods/
 texture_dump/
 texture_packs/
+shots/
 *.gdi
 *.cdi
 *.chd
-*.bin
 *.iso
 *.cue
+*.img
+*.mdf
+*.mds
+*.nrg
+*.bin
 1ST_READ.BIN
 
-# Generated game translation units (kept out; runtime sources ARE tracked)
+# Disc archives (ISO/GDI/CHD downloads, patches)
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+
+# Generated translation units and config proposals (runtime sources ARE tracked)
 src/game/
+include/game/
+game/suggested.toml
 *.json
 
 # IDE

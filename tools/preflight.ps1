@@ -3,7 +3,8 @@
   Preflight del toolchain Windows para el port de Sword of the Berserk (dreamcomp).
 
 .DESCRIPTION
-  Revisa Windows, RAM, espacio libre, git, cmake, ninja, python, clang-cl, glslc/Vulkan SDK y 7z.
+  Revisa Windows, RAM, espacio libre, git, cmake, ninja, python, clang-cl, glslc/Vulkan SDK y 7z
+  (opcional, para extraer imagenes comprimidas).
   No instala nada y no escribe archivos. Sale con codigo 1 si falta algo bloqueante.
 
 .EXAMPLE

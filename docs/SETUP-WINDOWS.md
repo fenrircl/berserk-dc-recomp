@@ -9,14 +9,12 @@ todo está listo. El orden importa poco, salvo VS Build Tools antes que nada (el
 |---|---|---|
 | Imagen Dreamcast en CHD | ~0.5 GB | No (se necesita para jugar) |
 | Imagen Dreamcast en GDI | ~1.2 GB | Sí, si ya tienes el CHD |
-| Imagen PS2 (ISO) | 3.6–4.7 GB | No |
 | Toolchain (VS Build Tools, LLVM, Vulkan SDK, CMake, Ninja, Python) | 8–12 GB | No |
 | Build Dreamcast (Release) | 0.5–1.5 GB | Sí, se regenera |
-| Build PS2 (Release) | 5–20 GB | Sí |
 | Dumps de texturas / parches | 0.1–0.5 GB | Sí |
 | Repos (código) | < 50 MB | — |
 
-**Recomendado libre en el disco de trabajo: 25 GB para Dreamcast, 80 GB si haces los dos.**
+**Recomendado libre en el disco de trabajo: 25 GB.**
 
 ## 2. Instalar el toolchain
 
@@ -32,7 +30,7 @@ winget install --id Ninja-build.Ninja -e             # ninja
 winget install --id Python.Python.3.12 -e            # python 3.10+ (dc.py)
 winget install --id KhronosGroup.VulkanSDK -e        # incluye glslc
 winget install --id Git.Git -e
-winget install --id 7zip.7zip -e                     # para el ISO de PS2
+winget install --id 7zip.7zip -e                     # opcional: extraer .zip / .7z de imágenes
 ```
 
 Enlaces oficiales si prefieres instaladores:
@@ -54,8 +52,8 @@ powershell -ExecutionPolicy Bypass -File tools\preflight.ps1 -Drive D -RequiredG
 ```
 
 El script revisa: Windows, RAM, espacio libre, `git`, `cmake`, `ninja`, `python`, `clang-cl`,
-`glslc`, `VULKAN_SDK` y `7z`. Cada línea sale `[OK]` o `[FALTA]`, y termina con código de salida 1
-si falta algo bloqueante.
+`glslc`, `VULKAN_SDK` y, de forma opcional, `7z`. Cada línea sale `[OK]`, `[WARN]` o `[FALTA]`, y
+termina con código de salida 1 si falta algo bloqueante.
 
 Luego, dentro de dreamcomp:
 
@@ -69,12 +67,10 @@ python tools\dc.py doctor
 D:\berserk\
   discs\
     berserk-jp-v1.001.chd        # Dreamcast (referencia: JP v1.001)
-    berserk-ps2.iso              # PlayStation 2
   work\
     dreamcomp\                   # framework (git clone)
       ports\
         berserk-recomp\          # este repo (git clone)
-    ps2recomp\                   # recompilador + runtime PS2 (git clone)
   dump\                          # texturas y parches, desechable
 ```
 
@@ -97,8 +93,10 @@ a CHD (más chico y un solo archivo) sin perder nada.
 de traducción existentes. Los discos US/PAL sirven para variantes de idioma, no para el build base.
 
 - Deja las imágenes en `D:\berserk\discs\`, fuera del repo (ya están en `.gitignore`).
+- Si descargaste un `.zip`/`.7z`, extráelo fuera del repo y conserva el `.gdi` o el `.cue`+`.bin`
+  completos; no se versiona ningún archivo del disco.
 - No renombres archivos internos de un `.gdi`/`.cue`, ni separes un `.cue` de sus `.bin`.
-- Verifica que la imagen abre en un emulador (Flycast/PCSX2) antes de culpar al port.
+- Verifica que la imagen abre en un emulador (Flycast) antes de culpar al port.
 
 ## 6. Primera sesión, en orden
 
