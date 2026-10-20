@@ -23,9 +23,30 @@ load_address = 0x8C010000            # BIOS loads the file here
 link_address = 0x0C010000            # P0 alias the literal pools assume
 entry = 0x8C010000
 
-# [[relocations]] and [functions] extra are NOT written by hand.
-# `dc.py report --suggest-config ...` proposes them once the game boots; paste and repeat until
-# the report shows `untranslated call targets: 0` and `unmapped memory accesses: 0`.
+# Measured by `dc.py report --suggest-config` (1800 frames): the game copies these code
+# fragments below the load address and runs them from RAM.
+[[relocations]]
+source = 0x0C0E1AD8
+size = 0x34
+dest = 0x8C000000
+
+[[relocations]]
+source = 0x0C0E1A44
+size = 0x34
+dest = 0x8C000100
+
+[[relocations]]
+source = 0x0C0E1A44
+size = 0x34
+dest = 0x8C000400
+
+[[relocations]]
+source = 0x0C0E1A7C
+size = 0x58
+dest = 0x8C000600
+
+# [functions] extra entries and further relocations come from the same report once these are in;
+# repeat until `untranslated call targets: 0` and `unmapped memory accesses: 0`.
 
 [hooks]
 # Subtitle override / widescreen land here in phase 4-5 (docs/START-HERE.md, section 7).
