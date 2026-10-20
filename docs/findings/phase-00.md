@@ -120,10 +120,25 @@ Extension counts: `.PAC` 408, `.BIN` 92, `.BML` 90, `.BPM` 89, `.TEX` 75,
 
 Five `.SFD` files, all **Sofdec (MPEG-1 Program Stream)**: header starts
 `00 00 01 BA 21 00 01 00 05 80 4F B5`, i.e. pack header / system header.
+`ffprobe` on `ASCII.SFD`: 320x240 MPEG-1 video at 30 fps plus ADX stereo audio.
 
-This confirms the known gap in `docs/START-HERE.md` section 6: dreamcomp ships no
-MPEG player, so an FMV path (Flycast's Sofdec code as reference, or decoded frames)
-is required before phase 3.
+The game decodes the stream itself (SH-4) and feeds the PVR YUV converter, so no engine-side
+MPEG player is needed. The display path did need an engine fix: the 320x240 frame is shown
+through a **stride texture** declared as 512x256, and the row pitch comes from
+`TEXT_CONTROL` (`0x0E4`) = `0x0A` → 320 texels. dreamcomp decoded linear textures at the
+declared width, so every row after the first was read 384 bytes late and the video came out
+as green/pink noise.
+
+Fixed in the dreamcomp checkout (branch `berserk-video-stride`, commit `e8bbe64`):
+
+- `TextureInfo` gains `row_stride`, kept separate from `width` so UVs still span the declared
+  texture.
+- `decode_texture` uses the stride for linear palette and 16-bit formats; `size_bytes` accounts
+  for it.
+- `Frame` carries `TEXT_CONTROL`, and the texture-cache key includes the stride.
+
+Verified with screenshots of the ASCII/opening FMVs (real frames, no noise) and with the first
+combat scene unchanged.
 
 ## 7. Audio
 

@@ -1,0 +1,294 @@
+From e8bbe6469a323b49d1afeff32d38d262cfafb62a Mon Sep 17 00:00:00 2001
+From: Cristofer <cristofer.miranda@gmail.com>
+Date: Tue, 20 Oct 2026 11:11:14 -0300
+Subject: [PATCH] render: read stride textures at TEXT_CONTROL's row pitch
+
+Berserk's FMVs are 320x240 MPEG-1 decoded by the game into a 512x256 stride texture. Flycast reads such rows at (TEXT_CONTROL & 31) * 32 texels; dreamcomp used the declared width, so every row after the first was read late and the video came out as green/pink noise. TextureInfo gains row_stride (kept separate from width so UVs still span the declared texture), decode_texture uses it for linear palette and 16-bit formats, size_bytes accounts for it, Frame carries TEXT_CONTROL, and the texture cache key includes the stride.
+---
+ .../include/dream/render/display_list.h       |  3 +++
+ engine/render/include/dream/render/texture.h  | 10 +++++--
+ .../include/dream/render/vk/texture_cache.h   |  3 ++-
+ engine/render/src/display_list.cpp            |  1 +
+ engine/render/src/texture.cpp                 | 26 ++++++++++++-------
+ engine/render/src/vk/renderer.cpp             | 16 +++++++-----
+ engine/render/src/vk/texture_cache.cpp        | 11 +++++---
+ engine/runtime/boot/boot_main.cpp             |  3 +++
+ 8 files changed, 51 insertions(+), 22 deletions(-)
+
+diff --git a/engine/render/include/dream/render/display_list.h b/engine/render/include/dream/render/display_list.h
+index eef04a3..fc8d9a4 100644
+--- a/engine/render/include/dream/render/display_list.h
++++ b/engine/render/include/dream/render/display_list.h
+@@ -77,6 +77,9 @@ struct Frame {
+     std::vector<ModifierTriangle> modifiers;
+     // The depth range the frame actually uses, for the projection the backend sets up.
+     float min_z = 0, max_z = 0;
++    // TEXT_CONTROL (PVR register 0x0E4): bits 0-4 give a stride texture's row pitch as a
++    // multiple of 32 texels. Video frames are 320 pixels wide inside a 512-wide texture.
++    std::uint32_t text_control = 0;
+     // Diagnostics, and what the headless tests assert on.
+     std::uint32_t strips = 0, sprites = 0, dropped_vertices = 0, unknown_parameters = 0;
+ 
+diff --git a/engine/render/include/dream/render/texture.h b/engine/render/include/dream/render/texture.h
+index 75c61dd..ee1c9ae 100644
+--- a/engine/render/include/dream/render/texture.h
++++ b/engine/render/include/dream/render/texture.h
+@@ -41,6 +41,11 @@ enum class PaletteFormat : unsigned { Argb1555 = 0, Rgb565 = 1, Argb4444 = 2, Ar
+ struct TextureInfo {
+     std::uint32_t address = 0;  // byte offset into the 64-bit view of video memory
+     std::uint32_t width = 8, height = 8;
++    // Row pitch in texels for a linear texture. Equal to width unless the hardware's
++    // TEXT_CONTROL stride applies (stride textures: video frames narrower than the declared
++    // texture width, e.g. 320 pixels shown through a 512-wide texture). `width` stays the
++    // declared width because that is what UVs are relative to.
++    std::uint32_t row_stride = 0;
+     PixelFormat format = PixelFormat::Argb1555;
+     bool twiddled = true;
+     bool vq = false;
+@@ -56,8 +61,9 @@ struct TextureInfo {
+     std::string describe() const;
+ };
+ 
+-// `stride_width` is the width in texels from the TEXT_CONTROL register, used only by stride
+-// textures. Returns false when the words describe something the decoder cannot handle.
++// `stride_width` is the row pitch in texels from the TEXT_CONTROL register, used only by stride
++// textures. It changes how rows are read, not the texture's declared width (UVs stay relative to
++// `width`). Returns false when the words describe something the decoder cannot handle.
+ bool describe_texture(std::uint32_t tcw, std::uint32_t tsp, std::uint32_t stride_width,
+                       TextureInfo& out);
+ 
+diff --git a/engine/render/include/dream/render/vk/texture_cache.h b/engine/render/include/dream/render/vk/texture_cache.h
+index 202f82e..2bf9607 100644
+--- a/engine/render/include/dream/render/vk/texture_cache.h
++++ b/engine/render/include/dream/render/vk/texture_cache.h
+@@ -60,7 +60,8 @@ public:
+     // resolution repeat addressing wraps the outermost half-texel to the opposite edge and outlines
+     // every quad. It is part of the key: the same texture can be tiled by one polygon and not by
+     // another, and the two need different samplers.
+-    VkDescriptorSet get(VkCommandBuffer cmd, std::uint32_t tcw, std::uint32_t tsp, bool tiled);
++    VkDescriptorSet get(VkCommandBuffer cmd, std::uint32_t tcw, std::uint32_t tsp, bool tiled,
++                        std::uint32_t stride_width = 0);
+ 
+     // A 1x1 opaque white texture, bound when a polygon's own texture could not be decoded. The
+     // shader is told not to sample, but Vulkan still wants a valid set bound, and a white texel
+diff --git a/engine/render/src/display_list.cpp b/engine/render/src/display_list.cpp
+index d6907b1..a94f007 100644
+--- a/engine/render/src/display_list.cpp
++++ b/engine/render/src/display_list.cpp
+@@ -117,6 +117,7 @@ void Frame::clear() {
+     modifiers.clear();
+     min_z = 0;
+     max_z = 0;
++    text_control = 0;
+     strips = 0;
+     sprites = 0;
+     dropped_vertices = 0;
+diff --git a/engine/render/src/texture.cpp b/engine/render/src/texture.cpp
+index 95f1beb..62ad01a 100644
+--- a/engine/render/src/texture.cpp
++++ b/engine/render/src/texture.cpp
+@@ -113,7 +113,8 @@ std::uint32_t twiddle_index(std::uint32_t x, std::uint32_t y, std::uint32_t widt
+ }
+ 
+ std::uint32_t TextureInfo::size_bytes() const noexcept {
+-    u32 texels = width * height;
++    const u32 pitch = twiddled ? width : (row_stride != 0 ? row_stride : width);
++    u32 texels = pitch * height;
+     // A mipmapped texture is followed by its whole chain, each level a quarter of the last, which
+     // converges on a third more texels. Rounded up: this bounds an invalidation range, and
+     // guessing low there means a stale texture, which is the worse way to be wrong.
+@@ -157,12 +158,16 @@ bool describe_texture(std::uint32_t tcw, std::uint32_t tsp, std::uint32_t stride
+     out.stride = tcw_stride_sel(tcw) != 0;
+     out.width = 8u << tsp_tex_u(tsp);
+     out.height = 8u << tsp_tex_v(tsp);
++    out.row_stride = out.width;
+     // Only non-palette, non-compressed textures may be in scan order; the bit is ignored
+     // otherwise, and a stride texture is always in scan order.
+     const bool can_be_linear = !out.vq && !out.indexed();
+     out.twiddled = !(can_be_linear && (tcw_scan_order(tcw) != 0 || out.stride));
+-    if (out.stride && stride_width != 0)
+-        out.width = stride_width;
++    // A stride texture's rows are TEXT_CONTROL's pitch, not the declared width. Keep `width` as
++    // declared: UVs span it, while the decoder walks the narrower rows (Flycast's TexCache does
++    // the same for video frames packed into a wider texture).
++    if (out.stride && !out.twiddled && stride_width != 0)
++        out.row_stride = stride_width;
+ 
+     if (out.format == PixelFormat::Palette4)
+         out.palette_base = tcw_palette_select(tcw) << 4;
+@@ -283,6 +288,9 @@ bool decode_texture(const TextureInfo& info, const std::uint8_t* vram, std::size
+     std::vector<u32> tx(w), ty(h);
+     for (u32 x = 0; x < w; ++x) tx[x] = twiddle_index(x, 0, w, h);
+     for (u32 y = 0; y < h; ++y) ty[y] = twiddle_index(0, y, w, h);
++    // Linear textures can be narrower than their declared width: a stride texture's rows are
++    // TEXT_CONTROL's pitch (video frames shown through a wider texture).
++    const u32 pitch = info.twiddled ? w : (info.row_stride != 0 ? info.row_stride : w);
+ 
+     if (info.vq) {
+         // The 256-entry codebook sits at the texture's address and the block indices follow it,
+@@ -325,11 +333,11 @@ bool decode_texture(const TextureInfo& info, const std::uint8_t* vram, std::size
+ 
+     switch (info.format) {
+         case PixelFormat::Palette4: {
+-            if (!in_range(base, w * h / 2))
++            if (!in_range(base, pitch * h / 2))
+                 return false;
+             for (u32 y = 0; y < h; ++y)
+                 for (u32 x = 0; x < w; ++x) {
+-                    const u32 index = info.twiddled ? (tx[x] | ty[y]) : y * w + x;
++                    const u32 index = info.twiddled ? (tx[x] | ty[y]) : y * pitch + x;
+                     const u8 byte = vram[base + index / 2];
+                     const u32 nibble = (index & 1u) ? (byte >> 4) : (byte & 0xFu);
+                     out[static_cast<std::size_t>(y) * w + x] = palette[info.palette_base + nibble];
+@@ -337,11 +345,11 @@ bool decode_texture(const TextureInfo& info, const std::uint8_t* vram, std::size
+             return true;
+         }
+         case PixelFormat::Palette8: {
+-            if (!in_range(base, w * h))
++            if (!in_range(base, pitch * h))
+                 return false;
+             for (u32 y = 0; y < h; ++y)
+                 for (u32 x = 0; x < w; ++x) {
+-                    const u32 index = info.twiddled ? (tx[x] | ty[y]) : y * w + x;
++                    const u32 index = info.twiddled ? (tx[x] | ty[y]) : y * pitch + x;
+                     out[static_cast<std::size_t>(y) * w + x] =
+                         palette[info.palette_base + vram[base + index]];
+                 }
+@@ -352,14 +360,14 @@ bool decode_texture(const TextureInfo& info, const std::uint8_t* vram, std::size
+         case PixelFormat::Rgb565:
+         case PixelFormat::Argb4444:
+         case PixelFormat::BumpMap: {
+-            if (!in_range(base, w * h * 2))
++            if (!in_range(base, pitch * h * 2))
+                 return false;
+             // Every 16-bit format, YUV included, stores one word per texel at the texel's own
+             // position, so the words are gathered into scan order first and converted after.
+             std::vector<u16> words(static_cast<std::size_t>(w) * h);
+             for (u32 y = 0; y < h; ++y)
+                 for (u32 x = 0; x < w; ++x) {
+-                    const u32 index = info.twiddled ? (tx[x] | ty[y]) : y * w + x;
++                    const u32 index = info.twiddled ? (tx[x] | ty[y]) : y * pitch + x;
+                     words[static_cast<std::size_t>(y) * w + x] =
+                         read16(vram + base + static_cast<std::size_t>(index) * 2);
+                 }
+diff --git a/engine/render/src/vk/renderer.cpp b/engine/render/src/vk/renderer.cpp
+index 4c03034..d4c6a9d 100644
+--- a/engine/render/src/vk/renderer.cpp
++++ b/engine/render/src/vk/renderer.cpp
+@@ -106,10 +106,12 @@ static_assert(offsetof(PushConstants, fog_vert) == 32, "push constants must matc
+ // What identifies a texture within one frame: the control word, plus the TSP bits that carry the
+ // size. Everything the sampler reads is decided per texture in prepare(), so it does not belong
+ // here; two polygons that share these bits share the decoded image.
+-constexpr std::uint64_t texture_key(const Polygon& p) {
+-    // Size bits, plus the sampler bits (TSP 8-18), which choose the descriptor set too.
++constexpr std::uint64_t texture_key(const Polygon& p, std::uint32_t stride_width) {
++    // Size bits, plus the sampler bits (TSP 8-18), which choose the descriptor set too, plus
++    // TEXT_CONTROL's stride, which changes how the rows are read.
+     return (static_cast<std::uint64_t>(p.tcw) << 32) | (p.tsp & 0x3Fu) |
+-           (static_cast<std::uint64_t>((p.tsp >> 8) & 0x7FFu) << 7);
++           (static_cast<std::uint64_t>((p.tsp >> 8) & 0x7FFu) << 7) |
++           (static_cast<std::uint64_t>(stride_width & 0x7FFu) << 18);
+ }
+ 
+ // Parameter control word and TSP fields the fragment shader needs.
+@@ -353,6 +355,7 @@ void Renderer::set_memory(const std::uint8_t* vram, std::size_t vram_size,
+ // recorded inside one. The descriptor sets are remembered for the draw that follows.
+ void Renderer::prepare(VkCommandBuffer upload, const Frame& frame) {
+     frame_sets_.clear();
++    const std::uint32_t stride_width = (frame.text_control & 31u) * 32u;
+     fallback_set_ = textures_.fallback(upload);
+     // Two passes, because whether a texture is addressed with repeat or clamp is a property of
+     // every polygon that samples it, not of the first one seen. One strip that genuinely wraps is
+@@ -368,13 +371,13 @@ void Renderer::prepare(VkCommandBuffer upload, const Frame& frame) {
+         for (const Polygon& p : list) {
+             if (!pcw_texture(p.pcw))
+                 continue;
+-            Use& u = used[texture_key(p)];
++            Use& u = used[texture_key(p, stride_width)];
+             u.tcw = p.tcw;
+             u.tsp = p.tsp;
+             u.tiled = u.tiled || polygon_tiles(frame, p);
+         }
+     for (const auto& [key, u] : used)
+-        frame_sets_[key] = textures_.get(upload, u.tcw, u.tsp, u.tiled);
++        frame_sets_[key] = textures_.get(upload, u.tcw, u.tsp, u.tiled, stride_width);
+ }
+ 
+ void Renderer::draw(VkCommandBuffer cmd, const Frame& frame, const FrameGeometry& geometry,
+@@ -383,6 +386,7 @@ void Renderer::draw(VkCommandBuffer cmd, const Frame& frame, const FrameGeometry
+     drawn_vertices = 0;
+     textured_polygons = 0;
+     blended_polygons = 0;
++    const std::uint32_t stride_width = (frame.text_control & 31u) * 32u;
+     punch_through_polygons = 0;
+     if (frame.vertices.empty())
+         return;
+@@ -540,7 +544,7 @@ void Renderer::draw(VkCommandBuffer cmd, const Frame& frame, const FrameGeometry
+         // a flat shape in the right place says more during bring-up than a hole.
+         VkDescriptorSet set = VK_NULL_HANDLE;
+         if (pcw_texture(p.pcw)) {
+-            const auto it = frame_sets_.find(texture_key(p));
++            const auto it = frame_sets_.find(texture_key(p, stride_width));
+             if (it != frame_sets_.end())
+                 set = it->second;
+         }
+diff --git a/engine/render/src/vk/texture_cache.cpp b/engine/render/src/vk/texture_cache.cpp
+index 913c441..8d9f823 100644
+--- a/engine/render/src/vk/texture_cache.cpp
++++ b/engine/render/src/vk/texture_cache.cpp
+@@ -322,7 +322,7 @@ bool TextureCache::upload(VkCommandBuffer cmd, Entry& e, const std::vector<std::
+ }
+ 
+ VkDescriptorSet TextureCache::get(VkCommandBuffer cmd, std::uint32_t tcw, std::uint32_t tsp,
+-                                  bool tiled) {
++                                  bool tiled, std::uint32_t stride_width) {
+     if (!vram_ || !ctx_)
+         return VK_NULL_HANDLE;
+     // The size lives in the TSP word, the rest in the TCW; together they identify the texture, and
+@@ -332,7 +332,10 @@ VkDescriptorSet TextureCache::get(VkCommandBuffer cmd, std::uint32_t tcw, std::u
+                         // The sampler state (filter, clamp, flip, mip D-adjust: TSP bits 8-18)
+                         // is part of the descriptor set, so it is part of the key (dreamcomp):
+                         // the first polygon to use a texture no longer decides it for all.
+-                        (static_cast<std::uint64_t>((tsp >> 8) & 0x7FFu) << 7);
++                        (static_cast<std::uint64_t>((tsp >> 8) & 0x7FFu) << 7) |
++                        // TEXT_CONTROL's stride changes how the rows are read, so the same
++                        // words with a different stride are a different texture.
++                        (static_cast<std::uint64_t>(stride_width & 0x7FFu) << 18);
+     // Indexed textures: fold in the content of the palette banks they read (dreamcomp), so a
+     // palette change selects a different entry instead of invalidating this one.
+     {
+@@ -340,7 +343,7 @@ VkDescriptorSet TextureCache::get(VkCommandBuffer cmd, std::uint32_t tcw, std::u
+         Meta& meta = mit->second;
+         if (fresh) {
+             TextureInfo probe;
+-            meta.ok = describe_texture(tcw, tsp, 0, probe);
++            meta.ok = describe_texture(tcw, tsp, stride_width, probe);
+             meta.indexed = meta.ok && probe.indexed();
+             meta.palette_base = probe.palette_base;
+             meta.palette_count = probe.format == PixelFormat::Palette4 ? 16u : 256u;
+@@ -361,7 +364,7 @@ VkDescriptorSet TextureCache::get(VkCommandBuffer cmd, std::uint32_t tcw, std::u
+ 
+     Entry e;
+     e.last_frame = frame_;
+-    if (!describe_texture(tcw, tsp, 0, e.info)) {
++    if (!describe_texture(tcw, tsp, stride_width, e.info)) {
+         ++failed;
+         entries_.emplace(key, std::move(e));  // remember the failure so it is not retried per frame
+         return VK_NULL_HANDLE;
+diff --git a/engine/runtime/boot/boot_main.cpp b/engine/runtime/boot/boot_main.cpp
+index d0fab39..9f7e968 100644
+--- a/engine/runtime/boot/boot_main.cpp
++++ b/engine/runtime/boot/boot_main.cpp
+@@ -442,6 +442,9 @@ struct Live {
+                                           dream::mem::DcMemory::kVramSize))
+             ++backgrounds;
+         for (auto* e : dream::host::extensions()) e->on_frame(decoder.frame());
++        // TEXT_CONTROL: stride textures (video frames packed into a wider texture) read their
++        // rows at (bits 0-4) * 32 texels, not at the declared width.
++        decoder.frame().text_control = pvr_.reg(0x0E4);
+         const dream::render::Frame& frame = decoder.frame();
+         // PT_ALPHA_REF: the punch-through threshold the guest chose, which changes per scene.
+         geometry.alpha_ref = static_cast<float>(pvr_.reg(0x11C) & 0xFFu) / 255.0f;
+-- 
+2.53.0.windows.1
+

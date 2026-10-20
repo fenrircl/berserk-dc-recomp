@@ -121,9 +121,10 @@ held 8 frames). Triage by symptom against `dreamcomp/docs/playbook/README.md`.
 
 ## 6. Known gaps to solve (scoped, not surprises)
 
-1. **MPEG/Sofdec video.** dreamcomp has no MPEG player (no mpeg/fmv code in the engine). Berserk
-   has pre-rendered sequences; if step 3 confirms Sofdec, add the player (Flycast's GPL-2.0 code is
-   the reference implementation) or feed decoded frames. This is the largest known unknown.
+1. **MPEG/Sofdec video.** Resolved for the JP disc: the game decodes its own Sofdec streams and
+   displays them through a stride texture (320x240 inside 512x256), so the engine had to honour
+   `TEXT_CONTROL`'s row pitch. See `docs/findings/phase-00.md` section 6. No engine MPEG player is
+   needed.
 2. **Yuke's streaming.** The game streams models/textures from GD-ROM during play. dreamcomp's
    GD-ROM HLE handles reads; if the game caches by raw sector instead of the filesystem, mods larger
    than the original file will not be seen (see `docs/MODS.md`).
