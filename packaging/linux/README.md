@@ -1,0 +1,61 @@
+# Linux / Steam Deck package
+
+Self-contained AppImage and portable `.tar.gz` for x86_64 Linux, built in a Docker container.
+
+What the package contains: the native binary, SDL3 3.4.18, the C++ runtime, the launcher
+assets/fonts and the port config. It does **not** contain the disc image, textures, voices or
+subtitles.
+
+## 1. Build image
+
+```powershell
+docker build -t berserk-linux-build -f packaging/linux/Dockerfile packaging/linux
+```
+
+Ubuntu 24.04, GCC 13, Vulkan loader, glslc; SDL3 is built from source into `/opt/sdl3`. The
+resulting binary needs glibc 2.38 (SteamOS 3.5+).
+
+## 2. Apply the engine patches
+
+The engine checkout needs `docs/engine-patches/stride-textures.patch` and
+`settings-panel.patch`; on Linux also `linux-build.patch` (the GCC 16 `steady_clock` ternary).
+The local `berserk-port-settings` branch already has all three.
+
+## 3. Build and package
+
+From the directory that contains both `dreamcomp` and `berserk-dc-recomp`:
+
+```powershell
+docker run --rm --entrypoint /usr/bin/bash `
+  -v E:\Proyectos:/src `
+  -v E:\berserk\dist:/dist `
+  -v E:\Proyectos\berserk-dc-recomp\packaging\linux:/pkg `
+  berserk-linux-build -lc "
+    rm -rf /dist/build-u24 &&
+    cmake -S /src/berserk-dc-recomp -B /dist/build-u24 -G Ninja `
+      -DCMAKE_BUILD_TYPE=Release -DDREAMCOMP_DIR=/src/dreamcomp `
+      -DDREAM_BUILD_TESTS=OFF -DCMAKE_PREFIX_PATH=/opt/sdl3 &&
+    cmake --build /dist/build-u24 --target berserk_boot --parallel 6 &&
+    bash /pkg/package-appimage.sh
+  "
+```
+
+Output in `E:\berserk\dist`:
+
+```
+Berserk-recomp-x86_64.AppImage
+berserk-recomp-linux-x86_64.tar.gz
+```
+
+## 4. Running on a Steam Deck
+
+1. Copy either package to the Deck (internal storage or microSD).
+2. AppImage: `chmod +x`, run it, or add it as a non-Steam game. No Proton.
+3. If the AppImage reports a FUSE error, either set `APPIMAGE_EXTRACT_AND_RUN=1` or extract the
+   tar and add `run.sh` as the non-Steam game.
+4. The launcher asks for the user's own disc image (`.gdi`, `.cue`+`.bin` or `.chd`). The
+   reference release is the JP v1.001 disc.
+
+The current package is a **development build** (SH-4 interpreter enabled). A release build needs
+the remaining untranslated call targets closed first. Mods, subtitles and HD texture packs are
+user-provided and live in `~/.config/dreamcomp/berserk/`.

@@ -1,0 +1,32 @@
+From 7bb9137018000878967a83eb28eefc397ab28dc8 Mon Sep 17 00:00:00 2001
+From: Cristofer <cristofer.miranda@gmail.com>
+Date: Tue, 20 Oct 2026 19:46:00 -0300
+Subject: [PATCH] boot: fix the steady_clock ternary for libstdc++
+
+GCC 16's steady_clock duration rep differs between the two ternary branches (long vs long long); assign through an explicit time_point instead. Required for the Linux/Deck build.
+---
+ engine/runtime/boot/boot_main.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/engine/runtime/boot/boot_main.cpp b/engine/runtime/boot/boot_main.cpp
+index 247f573..9984248 100644
+--- a/engine/runtime/boot/boot_main.cpp
++++ b/engine/runtime/boot/boot_main.cpp
+@@ -2578,9 +2578,11 @@ int main(int argc, char** argv) {
+                             const auto budget = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                                 sync.budget(period));
+                             const auto lead = budget + sync.margin;
+-                            auto next = sync.target.time_since_epoch().count() == 0
+-                                            ? sync.target
+-                                            : snap(sync.target + per);
++                            // Explicit type: the two branches of a ternary would be different
++                            // time_point reps under libstdc++ (long vs long long).
++                            std::chrono::steady_clock::time_point next = sync.target;
++                            if (sync.target.time_since_epoch().count() != 0)
++                                next = snap(sync.target + per);
+                             if (next.time_since_epoch().count() == 0 || next - lead < now - per) {
+                                 next = snap(now + lead + per / 2);
+                                 if (sync.target.time_since_epoch().count() != 0)
+-- 
+2.53.0.windows.1
+

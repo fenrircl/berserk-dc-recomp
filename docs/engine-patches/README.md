@@ -38,6 +38,17 @@ build needs it.
 - Branch: `berserk-port-settings`, commit `21957d8`.
 - Touches: `engine/runtime/include/dream/runtime/host_ext.h`, `engine/runtime/boot/boot_main.cpp`.
 
+## 3. `linux-build.patch` (port-local, Linux build)
+
+GCC 16/libstdc++ gives the two branches of a `steady_clock` ternary different `time_point` reps
+(`long` vs `long long`). Assign through an explicit `time_point` so the Linux build compiles.
+
+This is **not** part of the upstream PR: it exists for the Linux/Steam Deck build. Apply it after
+patch 2 (it is independent of the optional `--press` duration commit).
+
+- Branch: `berserk-port-settings`, commit `7bb9137`.
+- Touches: `engine/runtime/boot/boot_main.cpp`.
+
 ## Applying
 
 For the **upstream PR**, only patch 1:
