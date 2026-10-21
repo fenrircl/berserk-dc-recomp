@@ -57,11 +57,12 @@ For the **upstream PR**, only patch 1:
 git am <path to this repo>\docs\engine-patches\stride-textures.patch
 ```
 
-For **building this port**, both, in order:
+For **building this port**, all three, in order:
 
 ```powershell
 git am <path to this repo>\docs\engine-patches\stride-textures.patch
 git am <path to this repo>\docs\engine-patches\settings-panel.patch
+git am <path to this repo>\docs\engine-patches\linux-build.patch
 ```
 
 Verified on the JP v1.001 disc: the ASCII/opening FMVs show real frames, the first combat scene is

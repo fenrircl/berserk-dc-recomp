@@ -67,7 +67,8 @@ CMakeLists.txt              add_subdirectory(${DREAMCOMP_DIR} dreamcomp) + add_s
 game/berserk.toml           [game] [disc] [binary] [[relocations]] [functions] [hooks]
 game/CMakeLists.txt         dreamcomp_add_port(berserk TITLE "Sword of the Berserk" ...)
 src/berserk.cpp             PortInfo registration (title, players, widescreen hook)
-docs/PLAN.md                phase gates and what "done" means per phase
+docs/IMPLEMENTATION-PLAN.md  phased backlog, release gates and milestones
+docs/QA-MATRIX.md            living release test matrix
 docs/findings/phase-00.md   disc survey output (step 3)
 .gitignore                  no game data: extracted/, mods/, texture_dump/, texture_packs/
 LICENSE                     GPL-2.0 (the framework is GPL-2.0)

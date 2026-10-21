@@ -47,15 +47,23 @@ subtitles. Neither packs nor mods are committed: they are derived game data.
 
 | Platform | Build | Notes |
 |---|---|---|
-| Windows x64 | `python tools/dc.py build ports/berserk-recomp` | tested |
-| Linux x64 | `bash tools/build_linux.sh ports/berserk-recomp` | SDL3 3.4.18, Vulkan, glslc, C++20 |
-| Steam Deck | Linux build in a distrobox Arch container | Vulkan/RADV, SDL3 bundled, native (no Proton) |
+| Windows x64 | `python tools/dc.py build ports/berserk-recomp` | dev build tested |
+| Linux x64 | CMake + SDL3 + Vulkan | dev build tested in an Ubuntu 24.04 container; glibc 2.38 |
+| Steam Deck | Linux AppImage/Flatpak | local test AppImage only; Deck hardware, FUSE, suspend and performance pending |
 | macOS | CMake + MoltenVK + SDL3 | universal binary; port not yet verified |
 
 Packaging: binary + SDL3 runtime + `frontend/` assets, with `RPATH=$ORIGIN` on Linux. No disc
-image, textures, voices or subtitles in any package.
+image, textures, voices or subtitles in any public package. The disc-included AppImage used for
+local testing is not a release package and must not be redistributed.
 
 ## Remaining work
 
 True camera widescreen, additional post-processing filters, a full story playthrough
 of both translations, and cross-platform packaging remain to be validated.
+
+The detailed phase-by-phase backlog, with dependencies, acceptance criteria and release
+gates, is in [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md). In short: close the AOT
+release (no interpreter), validate the full story in both languages, finish true
+widescreen/HUD and post-processing, polish native subtitles/audio/controls, make the
+HD/mod pipeline user-friendly, and produce data-free Windows/Linux/Deck/macOS packages
+with CI and a full QA pass.
