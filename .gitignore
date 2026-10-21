@@ -60,6 +60,22 @@ game/suggested.toml
 # ...except the committed code graph, so `graphify.py --check` works in a fresh clone
 !docs/code-graph.json
 
+# Local media/assets (never commit -- builds, translations, textures)
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.ico
+*.ttf
+*.otf
+*.wav
+*.adx
+*.pak
+*.mp4
+*.webm
+*.mkv
+
 # IDE
 .vs/
 .vscode/
