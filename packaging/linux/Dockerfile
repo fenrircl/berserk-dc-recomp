@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libxcursor-dev libxfixes-dev libxss-dev libxtst-dev \
         libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev \
         libasound2-dev libpulse-dev libudev-dev libdbus-1-dev \
-        libegl1-mesa-dev libgl1-mesa-dev libgbm-dev \
+        libegl1-mesa-dev libgl1-mesa-dev libgbm-dev imagemagick \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL -o /tmp/sdl3.tar.gz \

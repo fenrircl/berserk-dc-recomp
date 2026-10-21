@@ -22,10 +22,19 @@ ln -sf libSDL3.so.0.4.18 "$APPDIR/usr/lib/libSDL3.so.0"
 cp -a /usr/lib/x86_64-linux-gnu/libstdc++.so.6 "$APPDIR/usr/lib/"
 cp -a /usr/lib/x86_64-linux-gnu/libgcc_s.so.1 "$APPDIR/usr/lib/"
 
-# Icon and desktop entry.
-install -m 644 /pkg/berserk-recomp.png "$APPDIR/berserk-recomp.png"
+# Icon and desktop entry. The icon is generated here: no image asset is kept in
+# the repository.
+command -v convert >/dev/null || { echo "package-appimage: ImageMagick is required" >&2; exit 1; }
+ICON=/tmp/berserk-recomp.png
+convert -size 256x256 xc:'#121212' \
+    -fill '#8f1717' -draw 'rectangle 44,44 212,212' \
+    -fill '#121212' -draw 'rectangle 62,62 194,194' \
+    -fill '#d93a3a' -draw 'polygon 76,196 196,76 196,104 104,224' \
+    -fill '#ececec' -draw 'rectangle 116,74 140,182' \
+    "$ICON"
+install -m 644 "$ICON" "$APPDIR/berserk-recomp.png"
 cp "$APPDIR/berserk-recomp.png" "$APPDIR/.DirIcon"
-install -m 644 /pkg/berserk-recomp.png \
+install -m 644 "$ICON" \
     "$APPDIR/usr/share/icons/hicolor/256x256/apps/berserk-recomp.png"
 
 cat > "$APPDIR/berserk-recomp.desktop" <<'EOF'

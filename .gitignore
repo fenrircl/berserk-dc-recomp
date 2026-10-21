@@ -2,6 +2,7 @@
 build/
 build-*/
 out/
+dist/
 .deps/
 .cache/
 CMakeUserPresets.json
@@ -26,6 +27,7 @@ game files/
 discs/
 extracted/
 mods/
+textures/
 texture_dump/
 texture_packs/
 shots/
@@ -46,7 +48,9 @@ shots/
 *.7z
 *.rar
 *.tar
+*.tar.*
 *.gz
+*.AppImage
 
 # Generated translation units and config proposals (runtime sources ARE tracked)
 src/game/
