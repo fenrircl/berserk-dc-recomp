@@ -1,0 +1,21 @@
+{
+  "$schema": "https://recomp.fyi/schema/v1.json",
+  "game": "Sword of the Berserk: Guts' Rage",
+  "wikidata": "Q3545637",
+  "system": "Dreamcast",
+  "type": "recomp",
+  "original": {
+    "region": "Japan",
+    "revision": "1.001",
+    "sha1": "fa5305acb5f572e38cf362e3a146f8bd5a9c27a4"
+  },
+  "project": "Berserk DC Recomp",
+  "status": "in-progress",
+  "targets": ["Windows", "Linux", "Steam Deck"],
+  "toolchain": ["dreamcomp", "dream-recomp"],
+  "approach": "Static SH-4 to C++ recompilation with a native PowerVR2 (Vulkan) renderer, AICA audio and Maple input; no emulator or BIOS.",
+  "maintainers": [{ "name": "fenrircl", "link": "https://github.com/fenrircl" }],
+  "tags": ["Dreamcast", "SH-4", "Vulkan", "PowerVR2", "AICA", "Static recompilation"],
+  "help": ["Full story playthrough on both translations", "Steam Deck and macOS verification", "AOT closure past the title screen", "True widescreen camera work"],
+  "notes": "Reference release is the JP v1.001 disc (the only one with subtitles). The port boots, skips the startup movies and reaches the main menu, with an added PC OPTIONS page (window mode, render scale, filtering, volume, bindings, English/Castilian menus). HD texture packs and disc-tree mods work. A release AOT build reports 0 untranslated call targets and 0 unmapped accesses, but the scripted boot still stops before the title. A full story playthrough, Steam Deck hardware and macOS remain unvalidated."
+}

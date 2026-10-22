@@ -59,6 +59,9 @@ game/suggested.toml
 *.json
 # ...except the committed code graph, so `graphify.py --check` works in a fresh clone
 !docs/code-graph.json
+# ...and the recomp.board row file, which the board reads from the repository root
+!.recomp.json
+!.recomp-*.json
 
 # Local media/assets (never commit -- builds, translations, textures)
 *.png
