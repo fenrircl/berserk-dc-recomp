@@ -52,6 +52,7 @@ never be uploaded, committed or redistributed.
 - [x] Define the supported release matrix: Windows x64, Linux x64, Steam Deck, macOS x64/arm64 (macOS still unverified).
 - [x] Create the [QA matrix](QA-MATRIX.md) with boot, menu, new game, combat, FMVs, saves, battle mode, PRIZE BOX, credits and endings.
 - [ ] Record a baseline report from the dev build: untranslated call targets, frame times, memory, startup time and shader-compile hitches. (Menu AOT results are in `findings/aot-closure.md`; frame-time/shader baseline still missing.)
+- [ ] Add a debug checkpoint workflow for bug hunting: VMU snapshot save/load first; evaluate a full engine save state (SH-4 context, RAM/VRAM/ARAM, PVR/SPG, AICA/ARM7, scheduler, Maple, GD-ROM) as a separate feature.
 - [ ] Add a release build preset with `DREAM_DEV_INTERPRETER=OFF` and a separate dev preset. (The Linux release was configured manually, not as a committed preset.)
 - [ ] Add CI skeletons for Windows and Linux that build and run engine tests; no game data in CI.
 - [x] Verify `.gitignore` covers builds, `dist/`, mods, textures, extracts, disc images and media.
