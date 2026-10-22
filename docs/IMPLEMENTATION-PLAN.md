@@ -25,7 +25,8 @@ never be uploaded, committed or redistributed.
 
 | Area | State | Notes |
 |---|---|---|
-| PC OPTIONS page | Done | Fifth main-menu entry, resident OPTION frame, `FONT.TEX` labels. See `findings/display-menu.md`. |
+| PC OPTIONS page | Done | Fifth main-menu entry, resident OPTION frame, `FONT.TEX` labels, 22/20 text sizing. See `findings/display-menu.md`. |
+| Input source | Done in test builds | A connected gamepad owns input; keyboard is ignored by default. `--keyboard` forces keyboard-only. Deck hardware validation pending. |
 | Window/fullscreen/resolution/scale | Done | Windowed, borderless fullscreen, 1-8x render scale. |
 | Texture filtering | Partial | Original/nearest/bilinear. Post-process filters are still missing. |
 | Widescreen | Partial | Crop with HUD safe area only; no true widened camera. Menus/FMVs stay 4:3. |
@@ -35,11 +36,11 @@ never be uploaded, committed or redistributed.
 | Intro skip | Done | Boot videos and long opening skip; story FMVs remain. |
 | HD texture packs | Runtime support | Dump/pack and Mods tab exist; guided pipeline, validation and memory work remain. |
 | Mods | Partial | Runtime load and Mods tab; load order, conflicts, metadata and credits need polish. |
-| Windows build | Dev build tested | Release/AOT build and public packaging pending. |
-| Linux build | Dev build tested | SDL3 3.4.18, Vulkan, glibc 2.38. AppImage FUSE and Deck hardware pending. |
-| Steam Deck | Local test only | A private disc-included AppImage was tested in a container; not a release package. |
+| Windows build | Release MSVC test built | 25.6 MB, optimized, dev interpreter still ON. Portable public packaging pending. |
+| Linux build | Dev and release compile | SDL3 3.4.18, Vulkan, glibc 2.38; Linux release with interpreter OFF compiles. AppImage/Deck packaging pending. |
+| Steam Deck | Local test only | Private disc-included AppImage tested in a container; hardware, FUSE, suspend and performance pending. |
 | macOS | Not verified | MoltenVK/SDL3 build and `.app` packaging pending. |
-| AOT release | Pending | Current build uses the SH-4 interpreter. |
+| AOT release | Partial | Four menu call targets closed in the windowed run; Linux interpreter-OFF build compiles. Full story route and Windows interpreter-OFF build pending. |
 | CI | Missing | No `.github` workflow yet. |
 | Full story QA | Pending | No complete EN/ES playthrough with saves, FMVs and endings yet. |
 
@@ -47,14 +48,14 @@ never be uploaded, committed or redistributed.
 
 **Goal:** make progress measurable and keep data out of the repository.
 
-- [ ] Freeze the supported reference disc: JP v1.001, SHA-1 `fa5305acb5f572e38cf362e3a146f8bd5a9c27a4`.
-- [ ] Define the supported release matrix: Windows x64, Linux x64, Steam Deck, macOS x64/arm64.
+- [x] Freeze the supported reference disc: JP v1.001, SHA-1 `fa5305acb5f572e38cf362e3a146f8bd5a9c27a4`.
+- [x] Define the supported release matrix: Windows x64, Linux x64, Steam Deck, macOS x64/arm64 (macOS still unverified).
 - [x] Create the [QA matrix](QA-MATRIX.md) with boot, menu, new game, combat, FMVs, saves, battle mode, PRIZE BOX, credits and endings.
-- [ ] Record a baseline report from the dev build: untranslated call targets, frame times, memory, startup time and shader-compile hitches.
-- [ ] Add a release build preset with `DREAM_DEV_INTERPRETER=OFF` and a separate dev preset.
+- [ ] Record a baseline report from the dev build: untranslated call targets, frame times, memory, startup time and shader-compile hitches. (Menu AOT results are in `findings/aot-closure.md`; frame-time/shader baseline still missing.)
+- [ ] Add a release build preset with `DREAM_DEV_INTERPRETER=OFF` and a separate dev preset. (The Linux release was configured manually, not as a committed preset.)
 - [ ] Add CI skeletons for Windows and Linux that build and run engine tests; no game data in CI.
-- [ ] Verify `.gitignore` covers builds, `dist/`, mods, textures, extracts, disc images and media.
-- [ ] Document which local test artifacts exist and where they are written; never add them to git.
+- [x] Verify `.gitignore` covers builds, `dist/`, mods, textures, extracts, disc images and media.
+- [x] Document which local test artifacts exist and where they are written; never add them to git.
 
 **Exit:** a committed baseline (numbers and commands, not data), a green CI build, and a
 release preset that can be reproduced on a clean checkout.
@@ -67,15 +68,15 @@ after the story route is scripted.
 
 **Goal:** ship a build that never falls back to the interpreter during supported play.
 
-- [ ] Run the dev build through the Phase 0 story route and collect every untranslated call target.
-- [ ] Add discovered targets to `[functions] extra` in `game/berserk.toml`; rebuild; repeat until clean.
+- [ ] Run the dev build through the Phase 0 story route and collect every untranslated call target. (The windowed 600-frame menu route is measured; no New Game/story route yet.)
+- [x] Add discovered targets to `[functions] extra` in `game/berserk.toml`; rebuild; repeat until clean. (Four windowed-menu targets added; gameplay targets still unknown.)
 - [ ] Audit dynamic code, relocations and RAM copies; make sure no code path needs the interpreter.
-- [ ] Build with `DREAM_DEV_INTERPRETER=OFF`; remove or guard dev-only replay/interpreter hooks.
+- [ ] Build with `DREAM_DEV_INTERPRETER=OFF`; remove or guard dev-only replay/interpreter hooks. (The Linux release compiles with the interpreter OFF; the Windows Release still has it ON and the dev hooks are not removed.)
 - [ ] Re-run the engine renderer tests and the port integration tests against the release binary.
 - [ ] Measure performance at 1x/2x on the reference PC and on Deck; set a frame-time budget.
 - [ ] Add a shader cache/pre-warm path if first-use stutter remains.
 - [ ] Keep a map file and crash-symbolization path for release diagnostics.
-- [ ] Document the exact release configure/build commands.
+- [x] Document the exact release configure/build commands. (Linux in `findings/aot-closure.md`; Windows Release command recorded in the build notes.)
 
 **Exit:** release binary boots, plays the full route, reaches no untranslated target, and meets
 the agreed frame-time/memory budget. The dev interpreter remains available only as a debugging
@@ -91,8 +92,8 @@ and dynamic fragments that cannot be discovered statically.
 
 ### Windows
 
-- [ ] Release build without a console window; keep `--debug` for logs.
-- [ ] Portable ZIP and/or installer; version metadata; icon and desktop shortcut.
+- [ ] Release build without a console window; keep `--debug` for logs. (Release MSVC binary built; console/public packaging not yet validated.)
+- [ ] Portable ZIP and/or installer; version metadata; icon and desktop shortcut. (Only the private disc-included test ZIP exists.)
 - [ ] Validate on a clean Windows machine with no development tools.
 - [ ] Decide on code signing (optional but recommended for public builds).
 
@@ -100,12 +101,12 @@ and dynamic fragments that cannot be discovered statically.
 
 - [ ] Build a release AppImage without the disc, translation packs or any derived data.
 - [ ] Handle FUSE availability: document `APPIMAGE_EXTRACT_AND_RUN=1`, provide a `.run`
-      fallback, or ship Flatpak if that is the smoother Deck path.
-- [ ] Bundle SDL3 and the C++ runtime; keep Vulkan on the host; set `RPATH=$ORIGIN`.
+      fallback, or ship Flatpak if that is the smoother Deck path. (`APPIMAGE_EXTRACT_AND_RUN=1` is documented; no `.run`/Flatpak yet.)
+- [x] Bundle SDL3 and the C++ runtime; keep Vulkan on the host; set `RPATH=$ORIGIN`. (Verified in the local test AppImage.)
 - [ ] Test Desktop Mode and Game Mode, Gamescope, suspend/resume, audio devices, controller
       hotplug and a microSD install.
 - [ ] Test at 1280x800, 16:10, 4:3 and an external 16:9 display.
-- [ ] Keep the local disc-included AppImage out of releases; it is a test tool only.
+- [x] Keep the local disc-included AppImage out of releases; it is a test tool only.
 
 ### macOS
 
@@ -163,13 +164,14 @@ selectable, persistent and measured on Deck.
 - [ ] Add a credits/licensing screen for the translation packs and their authors.
 - [ ] Split master volume into music, voices and SFX if the guest audio layout allows it.
 - [ ] Add subtitle on/off, size and background options if a native renderer exists.
-- [ ] Finish controller remapping UI, Deck glyphs, rumble and hotplug behavior.
+- [ ] Finish controller remapping UI, Deck glyphs, rumble and hotplug behavior. (PC OPTIONS -> CONTROLS and `--keyboard` exist; device glyphs/rumble polish pending.)
+- [x] Implement keyboard/gamepad source exclusivity so Steam Input's keyboard mirror cannot open menus alongside the pad. (Pad owns input by default; `--keyboard` forces keyboard-only. Deck hardware validation pending.)
 - [ ] Validate the Steam Deck controller layout: duplicate A+Start or B+Esc
       bindings make one physical button attack and pause/open the menu. Document
       the Gamepad layout and the PC OPTIONS -> CONTROLS fallback.
-- [ ] Localize the PC OPTIONS page itself in English and Castilian.
+- [x] Localize the PC OPTIONS page itself in English and Castilian.
 - [ ] Add accessibility basics: readable contrast, focus states, keyboard-only navigation.
-- [ ] Validate boot-data/UI patches against the pinned executable and fail safely if they do not match.
+- [x] Validate boot-data/UI patches against the pinned executable and fail safely if they do not match.
 
 **Exit:** a player can choose English or Castilian, keep Japanese voices, read all supported
 dialogue, adjust audio and controls, and see translation credits.

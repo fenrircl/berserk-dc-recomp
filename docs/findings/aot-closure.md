@@ -100,6 +100,16 @@ berserk-recomp --config /src/berserk-dc-recomp/game/berserk.toml \
 
 `aot.ini` used `scale = 1`, `fullscreen = false`, `language = en`, `volume = 0`.
 
+Windows Release MSVC:
+
+```bat
+cmd.exe /c 'call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --target berserk_boot --parallel 4'
+```
+
+The windowed 600-frame run that found the four menu targets used the same config,
+the bundled disc and the local `font-pack`; the rebuilt Release binary reached the
+main menu with `untranslated call targets: 0` and `unmapped memory accesses: 0`.
+
 ## Next actions
 
 1. Resolve the current working-tree menu/input WIP so the scripted route reaches
