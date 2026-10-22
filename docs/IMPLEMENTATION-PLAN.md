@@ -29,7 +29,7 @@ never be uploaded, committed or redistributed.
 | Input source | Done in test builds | A connected gamepad owns input; keyboard is ignored by default. `--keyboard` forces keyboard-only. Deck hardware validation pending. |
 | Window/fullscreen/resolution/scale | Done | Windowed, borderless fullscreen, 1-8x render scale. |
 | Texture filtering | Partial | Original/nearest/bilinear. Post-process filters are still missing. |
-| Widescreen | Partial | Crop with HUD safe area only; no true widened camera. Menus/FMVs stay 4:3. |
+| Widescreen | Partial | Crop only; the current uniform flat-quad scale is not per-element HUD anchoring. True widened camera and HUD adjustment remain. |
 | English/Castilian packs | Done for text/menus | Texture replacements; language change currently requires a restart. Optional English voice archives are not required. |
 | Japanese voices | Preserved | Keep the disc audio; do not ship translation voice archives in the default test/release path. |
 | FMV stride fix | Done locally | Upstream PR branch/body prepared; merge still pending. |
@@ -134,6 +134,7 @@ development tools; every artifact passes the no-data audit.
 - [ ] Implement a true widened camera/projection instead of only cropping the 4:3 image.
 - [ ] Define FOV/aspect policy for 16:9, 16:10, 21:9 and 4:3; avoid stretching.
 - [ ] Reposition or clamp HUD elements (health, prompts, subtitles, boss bars, menus) for each aspect.
+- [ ] Replace the current uniform flat-quad scale with a real HUD adjustment: identify HUD/subtitle quads, preserve their intended size, and anchor or clamp them per aspect instead of shrinking every flat quad toward the centre.
 - [ ] Keep menus, FMVs and 2D screens at their intended aspect with pillarboxing/letterboxing.
 - [ ] Add HUD overrides for screens that assume fixed 4:3 coordinates.
 - [ ] Validate culling, pop-in and effects that depend on the original frustum.

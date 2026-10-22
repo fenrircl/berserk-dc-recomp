@@ -27,7 +27,9 @@ Available settings:
   Borderless fullscreen uses the desktop resolution.
 - Internal render scale 1-8x, independent of window size.
 - Widescreen fill by crop, retaining proportions. This is not a Hor+ camera patch;
-  menus and movies retain 4:3. Flat HUD quads stay inside a 4:3 safe area.
+  menus and movies retain 4:3. The current crop scales every flat axis-aligned quad
+  toward the centre as a rough safe-area approximation; it does not identify HUD,
+  subtitle or prompt quads. A real per-element HUD adjustment is still pending.
 - Original / nearest / bilinear texture filtering (no unimplemented post filters).
 - English / Castilian menus and story subtitles from local asset packs. Language
   changes require restarting because the guest caches its menu textures in VRAM.

@@ -19,8 +19,10 @@ not committed. See [CHANGELOG.md](CHANGELOG.md).
 - Windowed / borderless fullscreen and window resolution.
 - Internal rendering scale 1-8x.
 - Original, nearest or bilinear texture filtering.
-- Optional widescreen crop with HUD safe area. This crops the view; a true widened
-  camera remains future work. Menus and movies retain 4:3.
+- Optional widescreen crop with an approximate flat-quad safe area. This crops the
+  view; a true widened camera remains future work. Menus and movies retain 4:3.
+  Per-element HUD anchoring/clamping is still pending; the current pass scales all
+  flat quads uniformly.
 - English / Castilian menus and subtitles from the user's local translation packs;
   switching language requires restarting the game.
 - Master volume and keyboard/controller bindings.
