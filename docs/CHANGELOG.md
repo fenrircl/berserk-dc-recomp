@@ -39,6 +39,20 @@
 - Packages still include the local disc and translation packs for testing only.
   Builds, discs, mods, textures and font packs are not committed.
 
+### AOT first pass
+
+- Configured and built a Linux release binary with `DREAM_DEV_INTERPRETER=OFF`
+  in the Ubuntu 24.04 container. It links successfully.
+- The 2400-frame headless boot reports **0 untranslated call targets** and
+  **0 unmapped memory accesses**, with nothing suggested by `--suggest-config`.
+- The current working tree does not reach the title/menu in this scripted route,
+  so this is not a full Phase 1 pass. The run stops at the frame limit without the
+  earlier `skipped boot movies` / `entered main menu` messages.
+- Four seed addresses from earlier logs were tried in `[functions] extra` and then
+  removed: they caused the boot to stop reaching the menu. `[functions] extra` is
+  empty again; no unverified seeds should be added.
+- Details and commands: [findings/aot-closure.md](findings/aot-closure.md).
+
 ### Known issues
 
 - If a white strip remains at the right edge with the fullscreen AppImage, it is in
