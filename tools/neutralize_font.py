@@ -2,12 +2,16 @@
 """Neutralize a dumped FONT.TEX atlas for the PC options page.
 
 The game's FONT.TEX outline is a warm dark grey (about 49,41,41), while the
-pre-rendered menu labels use a neutral grey. This script preserves the alpha and
-luminance but removes the colour cast, then writes a texture-pack PNG with the
-same dimensions/format/hash name as the dump.
+pre-rendered menu labels use a neutral grey. This script preserves alpha and
+writes a texture-pack PNG with the same dimensions/format/hash name as the dump.
+
+Two styles:
+  crisp   two-tone slate used by the local test packages: black outline and a
+          light grey fill (default);
+  neutral per-pixel greyscale, preserving the original luminance ramp.
 
 Usage:
-    python tools/neutralize_font.py DUMPED_FONT.png OUT_DIR
+    python tools/neutralize_font.py DUMPED_FONT.png OUT_DIR [--style crisp|neutral]
 
 The input and output are derived game data: keep them outside the repository.
 """
@@ -22,6 +26,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path, help="dumped 256x256_vq1555_<hash>.png")
     parser.add_argument("output", type=Path, help="texture-pack directory")
+    parser.add_argument(
+        "--style",
+        choices=("crisp", "neutral"),
+        default="crisp",
+        help="crisp = black outline + light grey fill; neutral = per-pixel greyscale",
+    )
     args = parser.parse_args()
 
     try:
@@ -40,7 +50,11 @@ def main() -> int:
                 pixels[x, y] = (0, 0, 0, 0)
             else:
                 luminance = int(round(0.299 * r + 0.587 * g + 0.114 * b))
-                pixels[x, y] = (luminance, luminance, luminance, a)
+                if args.style == "crisp":
+                    value = 0 if luminance < 80 else 210
+                else:
+                    value = luminance
+                pixels[x, y] = (value, value, value, a)
 
     args.output.mkdir(parents=True, exist_ok=True)
     destination = args.output / args.source.name

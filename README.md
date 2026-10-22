@@ -97,7 +97,7 @@ berserk-dc-recomp/
 ├── CMakeLists.txt        dreamcomp port entry point
 ├── game/                 berserk.toml (release SHA-1, relocations, hooks) + target
 ├── src/berserk.cpp       PortInfo, boot/menu hooks, settings entry
-├── docs/                 START-HERE, SETUP-WINDOWS, RESEARCH, PORT-FEATURES, IMPLEMENTATION-PLAN, QA-MATRIX, findings/, engine-patches/, CODE-GRAPH
+├── docs/                 START-HERE, SETUP-WINDOWS, RESEARCH, PORT-FEATURES, IMPLEMENTATION-PLAN, QA-MATRIX, CHANGELOG, findings/, engine-patches/, CODE-GRAPH
 ├── tools/                preflight.ps1 (toolchain check), graphify.py (dependency graph)
 ├── runtime/              legacy dcrecomp HAL — reference only, not compiled
 └── README.md

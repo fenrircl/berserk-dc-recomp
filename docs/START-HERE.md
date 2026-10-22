@@ -69,6 +69,7 @@ game/CMakeLists.txt         dreamcomp_add_port(berserk TITLE "Sword of the Berse
 src/berserk.cpp             PortInfo registration (title, players, widescreen hook)
 docs/IMPLEMENTATION-PLAN.md  phased backlog, release gates and milestones
 docs/QA-MATRIX.md            living release test matrix
+docs/CHANGELOG.md            recent improvements and known issues
 docs/findings/phase-00.md   disc survey output (step 3)
 .gitignore                  no game data: extracted/, mods/, texture_dump/, texture_packs/
 LICENSE                     GPL-2.0 (the framework is GPL-2.0)

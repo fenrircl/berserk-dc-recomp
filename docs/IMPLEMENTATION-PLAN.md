@@ -139,6 +139,10 @@ development tools; every artifact passes the no-data audit.
 - [ ] Add post-process filters beyond texture filtering (for example CRT/scanlines/sharpening);
       define which are supported and their performance cost.
 - [ ] Add the new options to PC OPTIONS with persistence and sensible defaults.
+- [ ] Audit the Vulkan presenter's pillarbox/letterbox clear on Deck. A white strip
+      was reported at the right edge where the 4:3 picture ends; the local AppImage
+      now forces fullscreen, but if it persists it is a presenter/source-column bug.
+      Capture the full window (not the F12 guest framebuffer) before changing it.
 - [ ] Capture local visual-regression screenshots; do not commit game-derived images.
 
 **Exit:** widescreen has no stretched HUD, menus/FMVs remain correct, and every filter is
@@ -160,6 +164,9 @@ selectable, persistent and measured on Deck.
 - [ ] Split master volume into music, voices and SFX if the guest audio layout allows it.
 - [ ] Add subtitle on/off, size and background options if a native renderer exists.
 - [ ] Finish controller remapping UI, Deck glyphs, rumble and hotplug behavior.
+- [ ] Validate the Steam Deck controller layout: duplicate A+Start or B+Esc
+      bindings make one physical button attack and pause/open the menu. Document
+      the Gamepad layout and the PC OPTIONS -> CONTROLS fallback.
 - [ ] Localize the PC OPTIONS page itself in English and Castilian.
 - [ ] Add accessibility basics: readable contrast, focus states, keyboard-only navigation.
 - [ ] Validate boot-data/UI patches against the pinned executable and fail safely if they do not match.

@@ -36,9 +36,14 @@ Available settings:
 Left/Right changes values; A changes a value or opens controls; B returns. Settings
 are saved immediately. Window resizing is posted to the SDL event thread. Other
 live changes use the host's callbacks; texture filter overrides edit TSP filter bits.
-Input uses the guest's held word at pad+8; pad+16 is its repeat/press word. Both are
-neutralized and restored while the custom row/page owns the input. Guest cursor
-and task state are also restored after the handler, covering pad polls within it.
+Input uses the guest's held word at pad+8; pad+16 is its repeat/press word. The
+guest keeps ownership of the four original rows: the port intercepts only the
+transitions into and out of the extra PC row. On a native direction edge the
+guest sees the first frame, then `g_swallow_first` hides the held direction until
+release. That avoids both the former double step (port and guest moving from the
+same edge) and the guest's held-direction repeat moving a second row. The PC row
+and page themselves neutralise the pad and restore guest cursor/task state after
+the handler, covering pad polls inside it.
 
 PC row/page navigation calls the same guest sound service as the original menu:
 `0x0C039BF0`, effect 3, as used by `0x0C03F650`. Caller registers are preserved,
@@ -52,13 +57,17 @@ UV y=60/256 and screen y=382. The original quad is retained.
 ## Font tone and size
 
 The PC page uses the resident `FONT.TEX` atlas (`TCW 0x400A6800`). Its outline is
-warm (`49,41,41`), while the original pre-rendered menu labels are neutral grey.
-The page draws labels at size 28, values at 24, the subtitle at 18 and the
-description at 14, matching the original OPTION screen more closely than the first
-20px labels.
+warm (`49,41,41`) and its transparent pixels are `(57,8,8)`, while the original
+pre-rendered menu labels are neutral grey. The page draws labels at size 22, values
+at 20, the subtitle at 16 and the description at 13; the extra main-menu row is
+size 22. These sizes fit the Spanish labels and values in their columns without
+overlap.
 
-For a local package, a neutralized copy of the atlas removes the colour cast without
-changing luminance or alpha. Generate it from a texture dump:
+For a local package, a neutralized copy of the atlas removes the colour cast. The
+test packages use the `crisp` style: transparent pixels become transparent black,
+the outline becomes black and the fill light grey. That also removes the warm
+fringe that bilinear sampling of the original transparent pixels produced. Generate
+it from a texture dump:
 
 ```powershell
 berserk-recomp --window --dump-textures C:\work\dump
@@ -66,7 +75,8 @@ python tools\neutralize_font.py C:\work\dump\256x256_vq1555_<hash>.png C:\work\f
 berserk-recomp --window --texture-pack C:\work\font-pack
 ```
 
-The atlas is the same hash in the Japanese, English and Castilian runs for the
-reference disc, so one pack covers all three. Both the dump and the pack are derived
-game data: keep them outside the repository. Public packages must not embed them;
-users can regenerate the pack from their own disc.
+Pass `--style neutral` for a per-pixel greyscale ramp instead. The atlas is the
+same hash in the Japanese, English and Castilian runs for the reference disc, so
+one pack covers all three. Both the dump and the pack are derived game data: keep
+them outside the repository. Public packages must not embed them; users can
+regenerate the pack from their own disc.

@@ -9,6 +9,12 @@ A fifth **PC OPTIONS** entry preserves the original **PRIZE BOX** gallery. It us
 resident OPTION textures and the game's own FONT.TEX alphabet, with grey styling
 and the original navigation sound. See [implementation notes](findings/display-menu.md).
 
+The local test packages use a neutral `FONT.TEX` pack: black outline and light grey
+fill, with transparent pixels cleared to black, so the custom labels do not acquire
+the original atlas's warm/brown fringe. The page draws labels at 22, values at 20,
+the subtitle at 16 and the description at 13. The pack is derived game data and is
+not committed. See [CHANGELOG.md](CHANGELOG.md).
+
 - Windowed / borderless fullscreen and window resolution.
 - Internal rendering scale 1-8x.
 - Original, nearest or bilinear texture filtering.
