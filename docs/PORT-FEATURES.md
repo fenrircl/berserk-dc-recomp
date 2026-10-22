@@ -5,9 +5,10 @@ translated game code is the game; this repository adds the PC-side behaviour aro
 
 ## Implemented PC menu
 
-A fifth **PC OPTIONS** entry preserves the original **PRIZE BOX** gallery. It uses
-resident OPTION textures and the game's own FONT.TEX alphabet, with grey styling
-and the original navigation sound. See [implementation notes](findings/display-menu.md).
+A fifth **PC OPTIONS** entry preserves the original **PRIZE BOX** gallery. Its
+main-menu lettering is assembled from the same resident title atlas as the other
+entries. The PC page uses the original OPTION frame and FONT.TEX alphabet, with
+grey styling and the original navigation sound. See [implementation notes](findings/display-menu.md).
 
 The local test packages use a neutral `FONT.TEX` pack: black outline and light grey
 fill, with transparent pixels cleared to black, so the custom labels do not acquire

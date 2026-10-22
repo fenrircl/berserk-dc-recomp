@@ -15,7 +15,7 @@ bool is_open();
 
 // Opens the page from the additional PC OPTIONS row.
 void open(dream::Memory& m);
-void handle_main_menu(dream::Memory& m);
+void handle_main_menu(dream::Memory& m, bool navigation_ready);
 
 // One frame of input for the page: it reads the pad, moves the selection and closes on B.
 // While the page is up the buttons are also hidden from the original menu, so it keeps
@@ -24,10 +24,11 @@ void handle_main_menu(dream::Memory& m);
 void handle_input(dream::Memory& m);
 void neutralise_pad(dream::Memory& m);
 bool input_hidden();
+void on_pad_update(dream::Memory& m);
 void sync_main_cursor(unsigned index);
 bool take_move_sound();
 
-// Puts the guest's button word back, if handle_input() hid it.
+// Ends input isolation, leaving events consumed and held-button history intact.
 void restore_pad(dream::Memory& m);
 
 }  // namespace berserk::display_menu

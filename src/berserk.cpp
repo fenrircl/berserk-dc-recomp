@@ -44,21 +44,28 @@ std::uint32_t g_menu_index = 0;
 std::uint32_t g_menu_shown = 0xFFFFFFFFu;  // the index last printed, to follow the cursor
 std::uint32_t g_task = 0, g_state64 = 0, g_state68 = 0, g_cursor = 0;
 bool g_restore_menu = false;
+bool g_menu_hook_active = false;
 
 }  // namespace
 
 // PC OPTIONS is a fifth row; the four original entries keep their guest behaviour.
 DC_HOOK_ENTRY(menu_settings) {
     g_restore_menu = false;
+    g_menu_hook_active = false;
     const std::uint32_t task = c.r[4];
     if (task < 0x8C000000u || task >= 0x8D000000u)
         return false;
+    g_menu_hook_active = true;
+    g_task = task;
     g_menu_index = m.read32(0x8C11E220);
     if (g_menu_index != g_menu_shown) {
         g_menu_shown = g_menu_index;
         std::fprintf(stderr, "[berserk] menu index %u\n", g_menu_index);
     }
-    berserk::display_menu::handle_main_menu(m);
+    const auto game = m.read32(0x8C11DFE8u);
+    const bool navigation_ready = game && m.read16(game + 3308u) == 0 &&
+                                  m.read32(task + 1796u) != 0;
+    berserk::display_menu::handle_main_menu(m, navigation_ready);
     berserk::display_menu::handle_input(m);
     if (berserk::display_menu::is_open()) {
         // The page owns the pad while it is up: it reads it and moves its own cursor, and the
@@ -77,8 +84,13 @@ DC_HOOK_ENTRY(menu_settings) {
 }
 
 DC_HOOK_EXIT(menu_settings) {
+    if (!g_menu_hook_active)
+        return;
+    g_menu_hook_active = false;
     // A pad poll can occur inside the guest handler after its entry hook.
     // Restore its state too, so such a poll cannot select/move behind our page.
+    const bool guest_moved_while_hidden =
+        g_restore_menu && m.read32(0x8C11E220) != g_cursor;
     if (g_restore_menu) {
         m.write32(g_task + 64, g_state64);
         m.write32(g_task + 68, g_state68);
@@ -86,7 +98,7 @@ DC_HOOK_EXIT(menu_settings) {
     }
     berserk::display_menu::sync_main_cursor(m.read32(0x8C11E220));
     berserk::display_menu::restore_pad(m);
-    if (berserk::display_menu::take_move_sound()) {
+    if (berserk::display_menu::take_move_sound() && !guest_moved_while_hidden) {
         // Exactly the original cursor sound: menu handler 0x0C03F650 calls
         // this sound service with effect 3. Preserve the caller's registers.
         const auto saved = c;
@@ -99,6 +111,13 @@ DC_HOOK_EXIT(menu_settings) {
         c.cycles = cycles;
         c.next_event = next_event;
     }
+}
+
+// Reapply event isolation after the guest rebuilds the pad state, including
+// polls delivered inside the main-menu handler. Held-button history is intact.
+DC_HOOK_EXIT(menu_pad_update) {
+    if (g_menu_hook_active)
+        berserk::display_menu::on_pad_update(m);
 }
 
 DC_HOOK_ENTRY(skip_intro_movie) {

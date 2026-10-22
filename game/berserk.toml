@@ -48,11 +48,21 @@ dest = 0x8C000600
 # [functions] extra entries and further relocations come from the same report once these are in;
 # repeat until `untranslated call targets: 0` and `unmapped memory accesses: 0`.
 
+[functions]
+extra = [
+  0x0C0C5FDA,
+  0x0C0C5FE4,
+  0x0C0C60AC,
+  0x0C0C60BE,
+]
+
 [hooks]
 # Boot movie sequence: it picks ASCII.SFD / YUKES.SFD / BERSERK2.SFD and waits for the player.
 # Complete the menu state as well as bypassing playback (JP v1.001).
 0x8C03E38A = "skip_intro_movie@entry"
 0x8C03ED2C = "start_title"
-# Main menu update: choosing PRIZE BOX (index 3) opens the port's settings panel.
+# Main menu update: add a fifth PC OPTIONS row.
 0x8C03F17E = "menu_settings"
+# Reapply input isolation after the guest pad poll (preserve held history).
+0x8C0A9E0E = "menu_pad_update@exit"
 # Subtitle override / widescreen land here in phase 4-5 (docs/START-HERE.md, section 7).

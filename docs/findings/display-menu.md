@@ -36,32 +36,38 @@ Available settings:
 Left/Right changes values; A changes a value or opens controls; B returns. Settings
 are saved immediately. Window resizing is posted to the SDL event thread. Other
 live changes use the host's callbacks; texture filter overrides edit TSP filter bits.
-Input uses the guest's held word at pad+8; pad+16 is its repeat/press word. The
-guest keeps ownership of the four original rows: the port intercepts only the
-transitions into and out of the extra PC row. On a native direction edge the
-guest sees the first frame, then `g_swallow_first` hides the held direction until
-release. That avoids both the former double step (port and guest moving from the
-same edge) and the guest's held-direction repeat moving a second row. The PC row
-and page themselves neutralise the pad and restore guest cursor/task state after
-the handler, covering pad polls inside it.
+The port owns Up/Down navigation across all five title entries, skipping
+CONTINUE when the guest save flag at game+2328 is zero. Each direction change
+moves immediately; holding repeats after 350 ms and then every 120 ms using
+a monotonic clock. PC OPTIONS uses guest cursor 3 as a surrogate, but remains
+a separate logical fifth entry. The same timer applies to every entry.
+Guest direction events at pad+16 are consumed on menu entry and after pad
+updates during the handler, so the original four-row navigation cannot run
+in parallel. Confirm actions for the original rows remain guest-owned.
+The guest pad updater at `0x0C0A9E0E` copies pad+8 to pad+44 and calculates
+`pressed = held & (held ^ previous)` at `0x0C0A9ED2`. Input isolation never
+writes pad+8, preserving that history. The PC page hides all guest events;
+confirm/back after closing the page are suppressed until release.
 
-PC row/page navigation calls the same guest sound service as the original menu:
+Title navigation and page navigation call the same guest sound service as the original menu:
 `0x0C039BF0`, effect 3, as used by `0x0C03F650`. Caller registers are preserved,
 while guest cycles and scheduled-event deadlines continue normally.
 
 Implementation: `src/display_menu.cpp`, `src/menu_text.cpp`, `src/pc_settings.cpp`, and the existing
 `menu_settings` entry/exit hook in `src/berserk.cpp`. JP v1.001 only: the extra row
 is drawn when the original title atlas (`0x400B7A00`) has its fourth-row quad at
-UV y=60/256 and screen y=382. The original quad is retained.
+UV y=60/256 and screen y=382. The original quad is retained. The fifth row copies
+the original OPTION/OPCIONES sprite from the same atlas and crops its P and C
+glyphs for the suffix, preserving the native letter shapes and neutral greys.
+The English row reads OPTION PC, matching the singular native OPTION label.
 
 ## Font tone and size
 
 The PC page uses the resident `FONT.TEX` atlas (`TCW 0x400A6800`). Its outline is
 warm (`49,41,41`) and its transparent pixels are `(57,8,8)`, while the original
-pre-rendered menu labels are neutral grey. The page draws labels at size 22, values
-at 20, the subtitle at 16 and the description at 13; the extra main-menu row is
-size 22. These sizes fit the Spanish labels and values in their columns without
-overlap.
+pre-rendered menu labels are neutral grey. Text vertices reduce the atlas red
+multiplier to neutralize the brown outline; UI glyphs and their measured widths
+are scaled to 92% so the panel typography sits closer to the native menu size.
 
 For a local package, a neutralized copy of the atlas removes the colour cast. The
 test packages use the `crisp` style: transparent pixels become transparent black,

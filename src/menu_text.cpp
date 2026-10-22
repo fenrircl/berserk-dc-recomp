@@ -11,11 +11,20 @@ namespace berserk::menu_text {
 namespace {
 constexpr std::uint32_t kFontTcw = 0x400A6800u; // FONT.TEX #0, VRAM 0x534000 (JP v1.001)
 constexpr std::uint32_t kFontTsp = 0x949004EDu;
+constexpr float kTextScale = 0.92f;
 const std::uint8_t* g_vram = nullptr;
 std::size_t g_vram_size = 0;
 bool g_ready = false;
 struct Glyph { float x = 0, y = 0, w = 0, h = 0, top = 0; };
 std::array<Glyph, 38> g_glyphs;
+
+std::uint32_t neutral_grey(std::uint32_t colour) {
+    // FONT.TEX has a warm brown outline (R=49, G/B=41). Reduce only the
+    // vertex red multiplier so the rendered outline lands at neutral grey.
+    const auto red = (colour >> 16) & 0xFFu;
+    const auto grey_red = (red * 214u + 127u) / 255u;
+    return (colour & 0xFF00FFFFu) | (grey_red << 16);
+}
 
 bool prepare() {
     if (g_ready) return true;
@@ -60,10 +69,11 @@ void quad(dream::render::Frame& frame, float x, float y, float w, float h,
     p.first = static_cast<std::uint32_t>(frame.vertices.size()); p.count = 4;
     p.pcw = glyph ? 0x828C0028u : 0x828C0020u;
     p.isp = 0xC8800000u; p.tsp = kFontTsp; p.tcw = glyph ? kFontTcw : 0;
-    frame.vertices.push_back(Vertex{x, y, z, u0, v0, colour, 0});
-    frame.vertices.push_back(Vertex{x, y + h, z, u0, v1, colour, 0});
-    frame.vertices.push_back(Vertex{x + w, y, z, u1, v0, colour, 0});
-    frame.vertices.push_back(Vertex{x + w, y + h, z, u1, v1, colour, 0});
+    const auto glyph_colour = glyph ? neutral_grey(colour) : colour;
+    frame.vertices.push_back(Vertex{x, y, z, u0, v0, glyph_colour, 0});
+    frame.vertices.push_back(Vertex{x, y + h, z, u0, v1, glyph_colour, 0});
+    frame.vertices.push_back(Vertex{x + w, y, z, u1, v0, glyph_colour, 0});
+    frame.vertices.push_back(Vertex{x + w, y + h, z, u1, v1, glyph_colour, 0});
     frame.lists[static_cast<unsigned>(dream::render::ListType::Translucent)].push_back(p);
     frame.min_z = std::min(frame.min_z, z); frame.max_z = std::max(frame.max_z, z);
 }
@@ -80,6 +90,7 @@ void set_vram(const std::uint8_t* vram, std::size_t size) {
 
 float width(std::string_view text, float size, float tracking) {
     if (!prepare()) return 0;
+    size *= kTextScale;
     float result = 0;
     for (unsigned char ch : text) result += advance(ch, size / 40) + tracking;
     return text.empty() ? 0 : result - tracking;
@@ -88,7 +99,7 @@ float width(std::string_view text, float size, float tracking) {
 void draw(dream::render::Frame& frame, std::string_view text, float x, float y,
           float size, std::uint32_t colour, float z, float tracking) {
     if (!prepare()) return;
-    const float scale = size / 40;
+    const float scale = (size * kTextScale) / 40;
     for (unsigned char ch : text) {
         const int index = glyph_index(ch);
         if (index >= 0) {
