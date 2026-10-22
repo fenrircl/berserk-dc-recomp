@@ -48,3 +48,25 @@ Implementation: `src/display_menu.cpp`, `src/menu_text.cpp`, `src/pc_settings.cp
 `menu_settings` entry/exit hook in `src/berserk.cpp`. JP v1.001 only: the extra row
 is drawn when the original title atlas (`0x400B7A00`) has its fourth-row quad at
 UV y=60/256 and screen y=382. The original quad is retained.
+
+## Font tone and size
+
+The PC page uses the resident `FONT.TEX` atlas (`TCW 0x400A6800`). Its outline is
+warm (`49,41,41`), while the original pre-rendered menu labels are neutral grey.
+The page draws labels at size 28, values at 24, the subtitle at 18 and the
+description at 14, matching the original OPTION screen more closely than the first
+20px labels.
+
+For a local package, a neutralized copy of the atlas removes the colour cast without
+changing luminance or alpha. Generate it from a texture dump:
+
+```powershell
+berserk-recomp --window --dump-textures C:\work\dump
+python tools\neutralize_font.py C:\work\dump\256x256_vq1555_<hash>.png C:\work\font-pack
+berserk-recomp --window --texture-pack C:\work\font-pack
+```
+
+The atlas is the same hash in the Japanese, English and Castilian runs for the
+reference disc, so one pack covers all three. Both the dump and the pack are derived
+game data: keep them outside the repository. Public packages must not embed them;
+users can regenerate the pack from their own disc.

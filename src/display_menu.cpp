@@ -70,6 +70,7 @@ std::uint32_t g_prev_buttons = 0;   // the buttons held the last time the page l
 std::uint32_t g_saved_pad = 0;       // the button word the page hid from the menu
 bool g_hidden = false;              // whether the button word is hidden right now
 bool g_swallow = false;             // the button that closed the page is still held
+bool g_swallow_first = false;       // let the guest see the first native edge once
 bool g_pc_selected = false;
 std::uint32_t g_main_prev = 0;
 unsigned g_main_index = 0;
@@ -150,7 +151,7 @@ void draw_page(Frame& frame) {
               kTspFrame, kTcwFrame, kColourLit, kZFrame);
 
     centred(frame, languages::spanish() ? "OPCIONES PC" : "PC OPTIONS", 43, 33, kColourLit, 1.2f);
-    centred(frame, languages::spanish() ? "PANTALLA / AUDIO" : "DISPLAY / AUDIO", 91, 15, 0xB0FFFFFFu, 1.3f);
+    centred(frame, languages::spanish() ? "PANTALLA / AUDIO" : "DISPLAY / AUDIO", 91, 18, 0xB0FFFFFFu, 1.3f);
     solid(frame, 124, 116, 392, 1, 0x80686868u, kZCursor);
 
     const float selected_y = kRowY[g_page.row];
@@ -158,18 +159,18 @@ void draw_page(Frame& frame) {
     solid(frame, 116, selected_y - 6, 2, 27, 0xFFB8B8B8u, kZText);
     for (int i = 0; i < kRowCount; ++i) {
         const auto colour = i == g_page.row ? kColourLit : kColourDim;
-        menu_text::draw(frame, pc_settings::label(i), 132, kRowY[i], 20,
+        menu_text::draw(frame, pc_settings::label(i), 132, kRowY[i], 28,
                         colour, kZText, 0.25f);
         const auto value = pc_settings::value(i);
-        menu_text::draw(frame, value, 510 - menu_text::width(value, 18), kRowY[i] + 1,
-                        18, colour, kZText);
+        menu_text::draw(frame, value, 510 - menu_text::width(value, 24), kRowY[i] + 1,
+                        24, colour, kZText);
     }
     solid(frame, 124, 349, 392, 1, 0x50686868u, kZCursor);
     const char* description = pc_settings::description(g_page.row);
-    const float description_width = menu_text::width(description, 12.5f);
-    centred(frame, description, 404, description_width > 420 ? 12.5f * 420 / description_width : 12.5f, 0xC0FFFFFFu);
+    const float description_width = menu_text::width(description, 14);
+    centred(frame, description, 404, description_width > 420 ? 14 * 420 / description_width : 14, 0xC0FFFFFFu);
     centred(frame, languages::spanish() ? "ARRIBA / ABAJO  ELEGIR    IZQ / DER  CAMBIAR    B  ATRAS" :
-             "UP / DOWN  SELECT    LEFT / RIGHT  CHANGE    B  BACK", 426, 11.5f,
+             "UP / DOWN  SELECT    LEFT / RIGHT  CHANGE    B  BACK", 426, 13,
              0xB0FFFFFFu, 0.1f);
 }
 
@@ -194,8 +195,8 @@ void draw_pc_entry(Frame& frame) {
     }
     if (main_menu) {
         const char* label = languages::spanish() ? "OPCIONES PC" : "PC OPTIONS";
-        menu_text::draw(frame, label, 322 - menu_text::width(label, 20, 0.35f) * 0.5f,
-                        410, 20, g_pc_selected ? 0xFFD0D0D0u : 0xFF6F6F6Fu,
+        menu_text::draw(frame, label, 322 - menu_text::width(label, 26, 0.35f) * 0.5f,
+                        410, 26, g_pc_selected ? 0xFFD0D0D0u : 0xFF6F6F6Fu,
                         3.06119e-05f, 0.35f);
     }
 }
@@ -208,6 +209,7 @@ struct DisplayMenu final : dream::host::Extension {
         g_page = {};
         g_prev_buttons = g_saved_pad = g_main_prev = 0;
         g_hidden = g_swallow = g_pc_selected = false;
+        g_swallow_first = false;
         g_main_index = 0;
         g_move_sound = false;
         pc_settings::start();
@@ -254,34 +256,40 @@ void handle_main_menu(dream::Memory& m) {
     if (g_page.open || g_swallow)
         return;
     const auto index = m.read32(0x8C11E220u);
+    const auto previous = g_main_index;
     if (edge & (kBtnUp | kBtnDown)) {
-        // The guest's cursor routine wraps and skips disabled rows on its own schedule,
-        // which races the extra fifth row. Own directional navigation for this menu and
-        // retain the original cursor index for the four guest entries.
+        const bool down = (edge & kBtnDown) != 0;
+        const bool up = (edge & kBtnUp) != 0;
+        // The guest owns the four original entries. It already has its own
+        // repeat/skip logic, so moving the cursor here as well made a held or
+        // late-polled direction move twice. Only intercept the two transitions
+        // into the extra PC row.
+        const bool from_prize = down && previous == 3 && (index == 3 || index == 0);
+        const bool from_new = up && previous == 0 && (index == 0 || index == 3);
         if (g_pc_selected) {
-            if (edge & kBtnUp) {
-                g_pc_selected = false;
-                m.write32(0x8C11E220u, 3);
-            } else {
-                g_pc_selected = false;
-                m.write32(0x8C11E220u, 0);
-            }
-        } else if ((edge & kBtnDown) && index == 3) {
-            g_pc_selected = true;
-            m.write32(0x8C11E220u, 3);
-        } else if ((edge & kBtnUp) && index == 0) {
-            g_pc_selected = true;
-            m.write32(0x8C11E220u, 3);
-        } else {
-            // Enabled native entries are New Game (0), Options (2), Prize Box (3).
-            const unsigned next = edge & kBtnDown
-                ? (index == 0 ? 2 : index == 2 ? 3 : 0)
-                : (index == 3 ? 2 : index == 2 ? 0 : 3);
-            m.write32(0x8C11E220u, next);
+            g_pc_selected = false;
+            m.write32(0x8C11E220u, down ? 0 : 3);
+            g_move_sound = true;
+            g_swallow = true;
+            g_swallow_first = false;
+            hide_pad(m);
+            return;
         }
-        g_move_sound = true;
+        if (from_prize || from_new) {
+            g_pc_selected = true;
+            m.write32(0x8C11E220u, 3);
+            g_move_sound = true;
+            g_swallow = true;
+            g_swallow_first = false;
+            hide_pad(m);
+            return;
+        }
+        // A native entry: let the guest handler move the cursor once and play
+        // its own sound. Swallow the held direction from the next frame until
+        // release so its repeat logic cannot move a second time.
+        g_pc_selected = false;
         g_swallow = true;
-        hide_pad(m);
+        g_swallow_first = true;
         return;
     }
     if (g_pc_selected) {
@@ -290,6 +298,7 @@ void handle_main_menu(dream::Memory& m) {
             m.write32(0x8C11E220u, 3);
             g_move_sound = true;
             g_swallow = true;
+            g_swallow_first = false;
             hide_pad(m);
         } else if (edge & (kBtnA | 0x08u)) {
             g_move_sound = true;
@@ -303,6 +312,7 @@ void open(dream::Memory& m) {
     g_page.open = true;
     g_page.row = 0;
     g_swallow = false;
+    g_swallow_first = false;
     // The edge detector restarts from what is held right now: the button that opened the page
     // must not be read as a new press on the page.
     g_prev_buttons = read_pad(m);
@@ -336,6 +346,7 @@ void handle_input(dream::Memory& m) {
             // The button that closed the page is swallowed until it is released: a held A
             // would pick PRIZE BOX again the moment the page goes away.
             g_swallow = true;
+            g_swallow_first = false;
             std::fprintf(stderr, "[berserk] display page closed\n");
         }
 
@@ -346,6 +357,12 @@ void handle_input(dream::Memory& m) {
     }
 
     if (g_swallow) {
+        if (g_swallow_first) {
+            // The guest handler has not run yet in this frame. Let it see the
+            // first native edge; the next frame hides the held direction.
+            g_swallow_first = false;
+            return;
+        }
         if (now == 0)
             g_swallow = false;
         else
