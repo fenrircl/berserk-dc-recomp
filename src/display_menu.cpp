@@ -151,7 +151,7 @@ void draw_page(Frame& frame) {
               kTspFrame, kTcwFrame, kColourLit, kZFrame);
 
     centred(frame, languages::spanish() ? "OPCIONES PC" : "PC OPTIONS", 43, 33, kColourLit, 1.2f);
-    centred(frame, languages::spanish() ? "PANTALLA / AUDIO" : "DISPLAY / AUDIO", 91, 18, 0xB0FFFFFFu, 1.3f);
+    centred(frame, languages::spanish() ? "PANTALLA / AUDIO" : "DISPLAY / AUDIO", 91, 16, 0xB0FFFFFFu, 1.3f);
     solid(frame, 124, 116, 392, 1, 0x80686868u, kZCursor);
 
     const float selected_y = kRowY[g_page.row];
@@ -159,18 +159,18 @@ void draw_page(Frame& frame) {
     solid(frame, 116, selected_y - 6, 2, 27, 0xFFB8B8B8u, kZText);
     for (int i = 0; i < kRowCount; ++i) {
         const auto colour = i == g_page.row ? kColourLit : kColourDim;
-        menu_text::draw(frame, pc_settings::label(i), 132, kRowY[i], 28,
+        menu_text::draw(frame, pc_settings::label(i), 132, kRowY[i], 22,
                         colour, kZText, 0.25f);
         const auto value = pc_settings::value(i);
-        menu_text::draw(frame, value, 510 - menu_text::width(value, 24), kRowY[i] + 1,
-                        24, colour, kZText);
+        menu_text::draw(frame, value, 510 - menu_text::width(value, 20), kRowY[i] + 1,
+                        20, colour, kZText);
     }
     solid(frame, 124, 349, 392, 1, 0x50686868u, kZCursor);
     const char* description = pc_settings::description(g_page.row);
-    const float description_width = menu_text::width(description, 14);
-    centred(frame, description, 404, description_width > 420 ? 14 * 420 / description_width : 14, 0xC0FFFFFFu);
+    const float description_width = menu_text::width(description, 13);
+    centred(frame, description, 404, description_width > 420 ? 13 * 420 / description_width : 13, 0xC0FFFFFFu);
     centred(frame, languages::spanish() ? "ARRIBA / ABAJO  ELEGIR    IZQ / DER  CAMBIAR    B  ATRAS" :
-             "UP / DOWN  SELECT    LEFT / RIGHT  CHANGE    B  BACK", 426, 13,
+             "UP / DOWN  SELECT    LEFT / RIGHT  CHANGE    B  BACK", 426, 12.5f,
              0xB0FFFFFFu, 0.1f);
 }
 
@@ -195,8 +195,8 @@ void draw_pc_entry(Frame& frame) {
     }
     if (main_menu) {
         const char* label = languages::spanish() ? "OPCIONES PC" : "PC OPTIONS";
-        menu_text::draw(frame, label, 322 - menu_text::width(label, 26, 0.35f) * 0.5f,
-                        410, 26, g_pc_selected ? 0xFFD0D0D0u : 0xFF6F6F6Fu,
+        menu_text::draw(frame, label, 322 - menu_text::width(label, 22, 0.35f) * 0.5f,
+                        410, 22, g_pc_selected ? 0xFFD0D0D0u : 0xFF6F6F6Fu,
                         3.06119e-05f, 0.35f);
     }
 }
