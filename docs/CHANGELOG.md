@@ -48,9 +48,12 @@
 - The current working tree does not reach the title/menu in this scripted route,
   so this is not a full Phase 1 pass. The run stops at the frame limit without the
   earlier `skipped boot movies` / `entered main menu` messages.
-- Four seed addresses from earlier logs were tried in `[functions] extra` and then
-  removed: they caused the boot to stop reaching the menu. `[functions] extra` is
-  empty again; no unverified seeds should be added.
+- A windowed 600-frame Windows run exposed four targets:
+  `0x0C0C5FDA`, `0x0C0C5FE4`, `0x0C0C60AC`, `0x0C0C60BE`. They were added to
+  `[functions] extra`; the **Release MSVC** rebuild (26.9 MB) reaches the main
+  menu and reports **0 untranslated** / **0 unmapped**.
+- The four addresses remain untested on gameplay, FMVs, battle, PRIZE BOX and
+  credits; the interpreter is still enabled. A full story route is the next gate.
 - Details and commands: [findings/aot-closure.md](findings/aot-closure.md).
 
 ### Known issues

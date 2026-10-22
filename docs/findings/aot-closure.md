@@ -42,6 +42,19 @@ the boot stopped reaching the menu even after a 2400-frame run. They are therefo
 Do not add these or any other address without a fresh report that names the target
 and a route that reaches it. A seed can change discovery and boot behaviour.
 
+Follow-up: a **windowed** 600-frame run on the Windows build produced exactly these
+four addresses:
+
+```
+untranslated call targets: 4
+0x0c0c5fda  0x0c0c5fe4  0x0c0c60ac  0x0c0c60be
+```
+
+They were re-added from that measured report. The Windows **Release MSVC** rebuild
+then reached the main menu and reported `untranslated call targets: 0` and
+`unmapped memory accesses: 0`. The earlier Linux/WIP boot problem is a separate
+issue; the windowed Windows route is the validated one for these four targets.
+
 ## Current Phase 1 state
 
 Done:
@@ -50,16 +63,19 @@ Done:
 - A Linux release build with the interpreter compiled out succeeds.
 - Boot reaches zero untranslated/unmapped reports at the frame limit.
 - Port hooks and the PC OPTIONS flow still compile in both dev and release.
+- A Windows Release MSVC build (26.9 MB) reaches the main menu with the four
+  windowed-menu targets added to `[functions] extra`; that run reports
+  `untranslated call targets: 0` and `unmapped memory accesses: 0`.
 
 Blocked:
 
 - The scripted headless route does not reach New Game or a story scene in the
-  current working tree. Presses at 600/900/1300/1700/2100/2500 frames did not
-  leave the menu (the custom menu log shows index 0 only).
-- No full story/battle/PRIZE BOX/credits route exists, so the target list for
-  those modes is unknown.
-- The Windows build is not part of this pass; the Linux container is the measured
-  path.
+  current working tree. The windowed Windows route reaches the title/main menu,
+  but no story/battle/PRIZE BOX/credits route exists yet.
+- No full story route, so the target list for gameplay, FMVs, battle, credits and
+  endings is unknown.
+- The Windows build is a dev-interpreter build (`DREAM_DEV_INTERPRETER=ON`); the
+  interpreter is not disabled yet.
 - No performance baseline or shader-cache measurement yet.
 
 ## Commands used
