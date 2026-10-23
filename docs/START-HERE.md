@@ -71,6 +71,8 @@ docs/IMPLEMENTATION-PLAN.md  phased backlog, release gates and milestones
 docs/QA-MATRIX.md            living release test matrix
 docs/CHANGELOG.md            recent improvements and known issues
 docs/findings/phase-00.md   disc survey output (step 3)
+docs/findings/widescreen.md renderer-side Hor+, HUD, 2D/cinema and Escape overlay notes
+docs/findings/save-states.md debug checkpoint format, slots and coverage
 .gitignore                  no game data: extracted/, mods/, texture_dump/, texture_packs/
 LICENSE                     GPL-2.0 (the framework is GPL-2.0)
 ```

@@ -85,8 +85,8 @@ local testing is not a release package and must not be redistributed.
 
 ## Remaining work
 
-True camera widescreen, additional post-processing filters, a full story playthrough
-of both translations, and cross-platform packaging remain to be validated.
+Additional post-processing filters, a full story playthrough of both translations,
+cross-platform packaging and per-scene widescreen/cutscene QA remain to be validated.
 
 The detailed phase-by-phase backlog, with dependencies, acceptance criteria and release
 gates, is in [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md). In short: close the AOT
