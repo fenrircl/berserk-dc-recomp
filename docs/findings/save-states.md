@@ -28,14 +28,19 @@ F9                 # reload the selected scenario
 The keys only save/load the debug checkpoint; the normal game/VMU save remains
 separate.
 
-The controller/binding screen (Esc/Select/F1) also lists:
+The controller/binding screen (Esc/Select/F1) has been given rows for
+`SAVE DEBUG STATE` (F5), `LOAD DEBUG STATE` (F9) and `NEXT DEBUG SLOT` (F6).
+However, in the packaged HUD used by the current test build those rows are **not
+visible yet**. The active Esc overlay must be identified; the rows may be in the
+engine `InputMenu` while the package opens a different panel. This is pending.
 
-- `SAVE DEBUG STATE` (F5)
-- `LOAD DEBUG STATE` (F9)
-- `NEXT DEBUG SLOT` (F6)
+F9 is also **not stable**: in the packaged test it still closes the game. The
+missing-file guard is present, so the observed close is likely a state-load crash
+from incomplete device state (AICA/SPG/Maple/GD-ROM) or the key reaching a
+different overlay. Do not treat save/load as release-ready.
 
-A missing or invalid state file prints an error and leaves the current session
-running; F9 no longer closes the game.
+There is no HUD toast for F5 either: the key writes the state file and prints to
+stdout, which is not visible when launched through `play.cmd`.
 
 ## What v2 stores
 
