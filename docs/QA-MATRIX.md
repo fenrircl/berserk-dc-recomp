@@ -60,11 +60,11 @@ Legend: `W` Windows, `L` Linux, `D` Steam Deck, `M` macOS. Status starts as `TBD
 
 | ID | Case | Expected | Platforms | Priority | Status |
 |---|---|---|---|---|---|
-| Q-040 | 4:3 original | Correct geometry and HUD | W/L/D/M | P0 | TBD |
-| Q-041 | 16:9 true widescreen | Wider view, no stretched HUD or culling artifacts | W/L/D/M | P0 | TBD |
+| Q-040 | 4:3 original | Correct geometry and HUD | W/L/D/M | P0 | PASS (title + first combat) |
+| Q-041 | 16:9 true widescreen | Wider view, no stretched HUD or culling artifacts | W/L/D/M | P0 | PASS (first combat) |
 | Q-042 | 16:10 Deck | Correct pillarbox/letterbox and HUD safe area | D | P0 | TBD |
-| Q-043 | 21:9 ultrawide | Defined behavior, no broken UI | W/L/M | P1 | TBD |
-| Q-044 | Menus/FMVs | Remain 4:3 with correct framing | W/L/D/M | P0 | TBD |
+| Q-043 | 21:9 ultrawide | Defined behavior, no broken UI | W/L/M | P1 | PASS (first combat) |
+| Q-044 | Menus/FMVs | Remain 4:3 with correct framing | W/L/D/M | P0 | PARTIAL (title/menu; FMV/cutscene QA pending) |
 | Q-045 | Render scale 1/2/4/8 | Correct output, stable memory | W/L/D/M | P0 | TBD |
 | Q-046 | Texture filters | Original/nearest/bilinear selectable | W/L/D/M | P1 | TBD |
 | Q-047 | Post-process filters | Selectable, persistent and measured | W/L/D/M | P1 | TBD |

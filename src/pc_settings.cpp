@@ -30,7 +30,7 @@ constexpr const char* kDescriptions[] = {
     "Windowed or borderless fullscreen",
     "Window size; fullscreen uses the desktop resolution",
     "Internal render resolution, independent of window size",
-    "CROP fills the display, keeping proportions and cropping the edges",
+    "EXPANDED widens the 3D view; the HUD keeps its original size and anchors to the edges",
     "Original filtering, sharp pixels or bilinear smoothing",
     "Menus and story subtitles; changes apply after restarting",
     "Overall game audio volume",
@@ -45,13 +45,13 @@ constexpr const char* kDescriptionsEs[] = {
     "Ventana o pantalla completa sin bordes",
     "Tamano de ventana; pantalla completa usa la resolucion del escritorio",
     "Resolucion interna, independiente del tamano de ventana",
-    "RECORTE llena la pantalla sin deformar; recorta los bordes",
+    "AMPLIADO ensancha la vista 3D; el HUD conserva su tamano y se ancla a los bordes",
     "Filtro original, pixeles nitidos o suavizado bilineal",
     "Menus y subtitulos; el cambio se aplica al reiniciar",
     "Volumen general del juego", "Configurar teclado y mando", "Volver al menu principal"
 };
 int g_resolution = 1, g_scale = 2, g_filter = 0, g_volume = 100;
-bool g_fullscreen = false, g_crop = false, g_initial_apply = true;
+bool g_fullscreen = false, g_wide = false, g_initial_apply = true;
 bool g_save_failed = false;
 std::atomic<int> g_window_request{-1};
 std::atomic<std::uint32_t> g_window_event{0};
@@ -76,7 +76,7 @@ void save() {
     settings.set_int("window_height", kResolutions[g_resolution][1]);
     settings.set_int("scale", g_scale);
     settings.set_int("pc_texture_filter", g_filter);
-    settings.set_bool("pc_widescreen_crop", g_crop);
+    settings.set("aspect", g_wide ? "expanded" : "original");
     settings.set_int("volume", g_volume);
     g_save_failed = !settings.save();
     if (g_save_failed)
@@ -90,7 +90,8 @@ void start() {
     g_scale = std::clamp(settings.get_int("scale", 2), 1, 8);
     g_volume = std::clamp(settings.get_int("volume", 100), 0, 100);
     g_filter = std::clamp(settings.get_int("pc_texture_filter", 0), 0, 2);
-    g_crop = settings.get_bool("pc_widescreen_crop", false);
+    const std::string aspect = settings.get("aspect", "original");
+    g_wide = aspect != "original" && aspect != "4:3";
     g_resolution = 1;
     for (int i = 0; i < static_cast<int>(kResolutions.size()); ++i)
         if (kResolutions[i][0] == settings.get_int("window_width", 1280) &&
@@ -158,7 +159,7 @@ std::string value(int row) {
                                              " x " + std::to_string(kResolutions[g_resolution][1]);
     case 2: return "X" + std::to_string(g_scale) + " / " + std::to_string(640 * g_scale) +
                    " X " + std::to_string(480 * g_scale);
-    case 3: return g_crop ? (languages::spanish() ? "RECORTE" : "CROP") : "ORIGINAL 4/3";
+    case 3: return g_wide ? (languages::spanish() ? "AMPLIADO" : "EXPANDED") : "ORIGINAL 4/3";
     case 4: return g_filter == 0 ? "ORIGINAL" : g_filter == 1 ? (languages::spanish() ? "NITIDO" : "NEAREST") : "BILINEAR";
     case 5: return languages::selected() == "es" ? "CASTELLANO" : "ENGLISH";
     case 6: return std::to_string(g_volume) + " / 100";
@@ -185,7 +186,7 @@ void change(int row, int direction) {
         g_scale = std::clamp(g_scale + direction, 1, 8);
         if (host.set_render_scale) host.set_render_scale(g_scale);
         break;
-    case 3: g_crop = !g_crop; break;
+    case 3: g_wide = !g_wide; break;
     case 4: g_filter = (g_filter + direction + 3) % 3; break;
     case 5:
         g_save_failed = !languages::choose(languages::spanish() ? "en" : "es");
@@ -206,13 +207,9 @@ void configure_controls() {
 }
 
 void apply_frame(dream::render::Frame& frame, bool menu) {
-    bool world = false;
     for (auto& list : frame.lists) {
         for (auto& p : list) {
             if (p.count < 3 || p.first + p.count > frame.vertices.size()) continue;
-            const float z = frame.vertices[p.first].z;
-            for (unsigned i = 1; i < p.count && !world; ++i)
-                world = std::abs(frame.vertices[p.first + i].z - z) > 0.000001f;
             if (g_filter && (p.pcw & 8u)) {
                 const unsigned mode = g_filter == 1 ? 0u : 1u;
                 p.tsp = (p.tsp & ~(3u << 13)) | (mode << 13);
@@ -221,36 +218,6 @@ void apply_frame(dream::render::Frame& frame, bool menu) {
             }
         }
     }
-#ifdef DREAM_WITH_RENDERER
-    auto& options = dream::render::vk::present_options();
-    const bool crop = g_crop && world && !menu;
-    options.fit = crop
-        ? dream::render::vk::PresentOptions::Fit::Crop
-        : dream::render::vk::PresentOptions::Fit::Letterbox;
-    options.display_aspect = 0;
-    // Keep flat HUD quads within the original 4:3 safe area when the world is
-    // cropped to a wide window. Menus and movies retain their full original view.
-    auto& host = dream::host::host_controls();
-    const float aspect = host.window_aspect ? host.window_aspect() : 4.0f / 3.0f;
-    if (crop && aspect > 4.0f / 3.0f) {
-        const float factor = (4.0f / 3.0f) / aspect;
-        for (const auto& list : frame.lists)
-            for (const auto& p : list) {
-                if (p.count != 4 || p.first + 4 > frame.vertices.size()) continue;
-                auto* v = frame.vertices.data() + p.first;
-                if (v[0].z != v[1].z || v[0].z != v[2].z || v[0].z != v[3].z) continue;
-                if (v[0].x != v[1].x || v[2].x != v[3].x ||
-                    v[0].y != v[2].y || v[1].y != v[3].y) continue;
-                if (std::abs(v[2].x - v[0].x) >= 620 && std::abs(v[1].y - v[0].y) >= 440)
-                    continue; // fullscreen fades/backdrops still cover the screen
-                for (int i = 0; i < 4; ++i) {
-                    v[i].x = 320 + (v[i].x - 320) * factor;
-                    v[i].y = 240 + (v[i].y - 240) * factor;
-                }
-            }
-    }
-#else
     (void)menu;
-#endif
 }
 }

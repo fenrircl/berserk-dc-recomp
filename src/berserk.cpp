@@ -22,6 +22,12 @@ std::uint32_t g_pad = 0;
 std::uint32_t g_menu = 0;
 std::uint32_t g_pressed = 0;
 
+// Widescreen is renderer-side for now: the game submits its world geometry with off-screen
+// coordinates instead of culling on the CPU, so dreamcomp squeezes the scene into the wide render
+// target and the presenter stretches it back (PortInfo::widescreen_scene_squeeze). There is no
+// guest projection hook yet, so this function only marks the port as widescreen-capable.
+void apply_widescreen(dream::System&, float) {}
+
 void on_start(dream::System&, dreamcomp::Settings& settings) {
     g_skip_intro = settings.get_bool("skip_intro", true);
     g_start_title = false;
@@ -33,6 +39,14 @@ const dreamcomp::PortInfo kInfo = [] {
     p.id = "berserk";
     p.title = "Sword of the Berserk: Guts' Rage";
     p.players = 1;  // single player; Maple port A only
+    p.widescreen = &apply_widescreen;
+    p.widescreen_anamorphic = true;
+    p.widescreen_scene_squeeze = true;
+    p.max_aspect = 21.0f / 9.0f;
+    p.hud.enabled = true;
+    p.hud.polygons = true;
+    p.hud.overlay_z = 1.0f;  // the game's 2D HUD/font layer is drawn at 1/w == 1
+    p.hud.full_width = 600.0f;
     p.on_start = &on_start;
     return p;
 }();

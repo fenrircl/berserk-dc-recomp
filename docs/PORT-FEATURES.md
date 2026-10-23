@@ -19,10 +19,13 @@ not committed. See [CHANGELOG.md](CHANGELOG.md).
 - Windowed / borderless fullscreen and window resolution.
 - Internal rendering scale 1-8x.
 - Original, nearest or bilinear texture filtering.
-- Optional widescreen crop with an approximate flat-quad safe area. This crops the
-  view; a true widened camera remains future work. Menus and movies retain 4:3.
-  Per-element HUD anchoring/clamping is still pending; the current pass scales all
-  flat quads uniformly.
+- True widescreen (renderer-side Hor+): the game submits off-screen world geometry to the
+  PVR, so dreamcomp squeezes 3D primitives horizontally into the wide render target and
+  the presenter stretches them back. The HUD is classified separately and keeps its
+  original size, anchored left/centre/right. Menus and FMVs stay 4:3 centred; a cutscene
+  that is already letterboxed by the game fills the wide picture and its cinematic bars
+  are cropped instead of being confined to the 4:3 card. Supported up to 21:9.
+  See [findings/display-menu.md](findings/display-menu.md).
 - English / Castilian menus and subtitles from the user's local translation packs;
   switching language requires restarting the game.
 - Master volume and keyboard/controller bindings.

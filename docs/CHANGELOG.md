@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-10-23 - True widescreen and HUD
+
+- Replaced the crop-only widescreen path with renderer-side Hor+. Berserk submits its
+  off-screen world geometry to the PVR, so the engine squeezes 3D primitives horizontally
+  into the wide render target and the presenter stretches them back. The result is a wider
+  view without a guest projection hook or CPU culling changes.
+- Added HUD classification for the game's z=1 2D layer. HUD and subtitle primitives keep
+  their original size and anchor left, centre or right; 3D geometry is squeezed separately.
+- Menus and FMVs with no substantial 3D geometry stay 4:3 centred. A cutscene that is
+  already letterboxed by the game now fills the wide picture and its cinematic bars are
+  cropped instead of being confined to the 4:3 card.
+- PC OPTIONS -> WIDESCREEN now toggles the engine's `aspect` setting between Original and
+  Expanded; the old `pc_widescreen_crop` path was removed. Port maximum is 21:9.
+- Validated on the first combat scene at 16:9 and 21:9, and on the title/menu 4:3 path.
+  Full-story visual QA, cutscene/FMV coverage and per-element HUD overrides remain.
+
 ## 2026-10-23 - Debug checkpoint completion
 
 - Expanded checkpoints to ten rotating slots: F5 saves, F6 selects the next slot,

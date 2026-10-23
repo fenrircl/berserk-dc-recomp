@@ -30,7 +30,7 @@ never be uploaded, committed or redistributed.
 | Debug checkpoints | Partial v7 | Ten slots (F5/F6/F9, also exposed through the in-game controller HUD); full guest memory + SH-4 + PVR registers/TA stream + scheduler + AICA/ARM7/mixer + GD-ROM HLE + SPG/interrupt state. Unit tests and Windows build pass. Maple/VMU state and manual first-stage-to-title reload QA remain. |
 | Window/fullscreen/resolution/scale | Done | Windowed, borderless fullscreen, 1-8x render scale. |
 | Texture filtering | Partial | Original/nearest/bilinear. Post-process filters are still missing. |
-| Widescreen | Partial | Crop only; the current uniform flat-quad scale is not per-element HUD anchoring. True widened camera and HUD adjustment remain. |
+| Widescreen | Done (test build) | Renderer-side Hor+ from the off-screen geometry the game submits; HUD classified and anchored by the engine. Menus/FMVs stay 4:3; letterboxed cutscenes fill the wide picture. Validated at 16:9 and 21:9 on the first combat scene; full-story visual QA remains. |
 | English/Castilian packs | Done for text/menus | Texture replacements; language change currently requires a restart. Optional English voice archives are not required. |
 | Japanese voices | Preserved | Keep the disc audio; do not ship translation voice archives in the default test/release path. |
 | FMV stride fix | Done locally | Upstream PR branch/body prepared; merge still pending. |
@@ -134,11 +134,11 @@ development tools; every artifact passes the no-data audit.
 
 **Goal:** finish the visual feature set without breaking the game's 4:3 assumptions.
 
-- [ ] Implement a true widened camera/projection instead of only cropping the 4:3 image.
-- [ ] Define FOV/aspect policy for 16:9, 16:10, 21:9 and 4:3; avoid stretching.
-- [ ] Reposition or clamp HUD elements (health, prompts, subtitles, boss bars, menus) for each aspect.
-- [ ] Replace the current uniform flat-quad scale with a real HUD adjustment: identify HUD/subtitle quads, preserve their intended size, and anchor or clamp them per aspect instead of shrinking every flat quad toward the centre.
-- [ ] Keep menus, FMVs and 2D screens at their intended aspect with pillarboxing/letterboxing.
+- [x] Implement a true widened view instead of only cropping the 4:3 image. (Berserk submits its off-screen world geometry to the PVR; dreamcomp squeezes the 3D scene into the wide render target and the presenter stretches it back. No guest projection hook is needed. Validated on the first combat scene at 16:9 and 21:9.)
+- [x] Define FOV/aspect policy for 16:9, 16:10, 21:9 and 4:3; avoid stretching. (Port maximum is 21:9; 16:10 is supported by the engine's expanded aspect. Menus/FMVs stay 4:3; letterboxed cutscenes fill the wide picture.)
+- [x] Reposition or clamp HUD elements (health, prompts, subtitles, boss bars, menus) for each aspect. (The engine's HUD rule uses the game's z=1 2D layer and anchors by screen third; the first combat HUD is correct at 16:9 and 21:9.)
+- [x] Replace the current uniform flat-quad scale with a real HUD adjustment: identify HUD/subtitle quads, preserve their intended size, and anchor or clamp them per aspect instead of shrinking every flat quad toward the centre. (Pieces at the game's 2D z=1 layer are classified as HUD; 3D primitives are squeezed separately.)
+- [x] Keep menus, FMVs and 2D screens at their intended aspect with pillarboxing/letterboxing. (2D frames with no substantial 3D geometry are centred at 4:3; cutscenes already letterboxed by the game are scaled vertically to fill the wide picture and their bars are cropped.)
 - [ ] Add HUD overrides for screens that assume fixed 4:3 coordinates.
 - [ ] Validate culling, pop-in and effects that depend on the original frustum.
 - [ ] Add post-process filters beyond texture filtering (for example CRT/scanlines/sharpening);

@@ -26,10 +26,13 @@ Available settings:
 - Window resolution: 960x720, 1280x720, 1600x900, 1920x1080, 2560x1440, 3840x2160.
   Borderless fullscreen uses the desktop resolution.
 - Internal render scale 1-8x, independent of window size.
-- Widescreen fill by crop, retaining proportions. This is not a Hor+ camera patch;
-  menus and movies retain 4:3. The current crop scales every flat axis-aligned quad
-  toward the centre as a rough safe-area approximation; it does not identify HUD,
-  subtitle or prompt quads. A real per-element HUD adjustment is still pending.
+- True widescreen by renderer-side Hor+: the game submits off-screen world geometry to the
+  PVR instead of culling it on the SH-4, so dreamcomp squeezes 3D primitives around the
+  screen centre into the wide render target; the presenter stretches them back. HUD
+  primitives on the game's z=1 2D layer are classified separately and anchored left,
+  centre or right. Menus and FMVs without substantial 3D geometry stay 4:3 centred. A
+  cutscene already letterboxed by the game fills the wide picture and its cinematic bars
+  are cropped. Supported up to 21:9. This replaces the earlier crop-only path.
 - Original / nearest / bilinear texture filtering (no unimplemented post filters).
 - English / Castilian menus and story subtitles from local asset packs. Language
   changes require restarting because the guest caches its menu textures in VRAM.
