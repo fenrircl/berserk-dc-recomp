@@ -4,6 +4,30 @@ This is a **local debugging feature**, not a VMU save and not a Flycast-compatib
 state. It exists to resume a scenario without replaying the boot and earlier
 areas. It is not part of a public release.
 
+## Hotkeys and slots (windowed debug)
+
+- **F5**: save the current slot.
+- **F6**: advance to the next slot.
+- **F9**: load the current slot in place, without restarting the process.
+
+Slots are files in `states/slotN.state` by default. Use `--state-dir DIR` and
+`--state-slot N` to choose the directory and starting slot. F5/F6/F9 are debug
+keys: they remain available even when a connected gamepad owns the gameplay
+input. They are ignored in a headless run; use the CLI flags there.
+
+Example for scenario testing:
+
+```text
+launch with --state-dir states --state-slot 0
+F5                 # first scenario -> states/slot0.state
+F6                 # select slot 1
+F5                 # second scenario -> states/slot1.state
+F9                 # reload the selected scenario
+```
+
+The keys only save/load the debug checkpoint; the normal game/VMU save remains
+separate.
+
 ## What v2 stores
 
 - SH-4 `Ctx`: registers, banks, FPU banks, PC/PR/SR, cycles and next event.

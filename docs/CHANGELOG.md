@@ -48,6 +48,8 @@
 - Verified on the Windows Release MSVC build: save the main menu at frame 800,
   load in a new process, 240 frames presented, exit 0, 0 untranslated/unmapped.
 - A v1 file without scheduler state crashed after 120 frames; v2 fixed that.
+- Windowed hotkeys: F5 saved `slot0.state` and `slot1.state` (after F6), and F9
+  loaded `slot0.state` in place without restarting the process.
 - AICA/ARM7, SPG/TA internals, Maple and GD-ROM state remain pending for full
   scene checkpoints. See [findings/save-states.md](findings/save-states.md).
 

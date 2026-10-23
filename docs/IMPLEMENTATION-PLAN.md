@@ -27,7 +27,7 @@ never be uploaded, committed or redistributed.
 |---|---|---|
 | PC OPTIONS page | Done | Fifth main-menu entry, resident OPTION frame, `FONT.TEX` labels, 22/20 text sizing. See `findings/display-menu.md`. |
 | Input source | Done in test builds | A connected gamepad owns input; keyboard is ignored by default. `--keyboard` forces keyboard-only. Deck hardware validation pending. |
-| Debug checkpoints | Partial v2 | Full RAM/VRAM/ARAM/BIOS/flash/OCRAM + SH-4 + PVR registers + scheduler; menu save/load verified. AICA/ARM7, SPG internals, Maple and GD-ROM pending. |
+| Debug checkpoints | Partial v2 | Full RAM/VRAM/ARAM/BIOS/flash/OCRAM + SH-4 + PVR registers + scheduler; F5/F6/F9 slots verified in the menu. AICA/ARM7, SPG internals, Maple and GD-ROM pending. |
 | Window/fullscreen/resolution/scale | Done | Windowed, borderless fullscreen, 1-8x render scale. |
 | Texture filtering | Partial | Original/nearest/bilinear. Post-process filters are still missing. |
 | Widescreen | Partial | Crop only; the current uniform flat-quad scale is not per-element HUD anchoring. True widened camera and HUD adjustment remain. |
