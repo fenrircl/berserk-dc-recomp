@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-10-23 - Escape and widescreen fixes
+
+- Escape now only opens/closes the in-game settings panel. The second Escape used to
+  close the panel and immediately open the engine controller screen, which looked
+  like a second configurator; Escape no longer opens that screen behind an overlay.
+  Controller bindings remain available from the panel's Controls tab.
+- Widescreen now detects cutscenes that the game already letterboxes and fills the
+  wide picture, cropping the game's own bars instead of confining them to the 4:3
+  card. Menus and 4:3 FMVs keep the centred 4:3 path.
+- Fixed the widescreen HUD classification and added the 16:9/21:9 combat checks to
+  the QA matrix.
+
 ## 2026-10-23 - True widescreen and HUD
 
 - Replaced the crop-only widescreen path with renderer-side Hor+. Berserk submits its
