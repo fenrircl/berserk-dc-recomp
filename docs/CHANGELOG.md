@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-10-23 - Debug checkpoint completion
+
+- Expanded checkpoints to ten rotating slots: F5 saves, F6 selects the next slot,
+  and F9 loads it in place. The controller HUD offers the same actions and shows
+  the selected slot.
+- Upgraded the checkpoint format to v7. It now preserves AICA/ARM7 and mixer
+  playback so music resumes, as well as GD-ROM HLE, SPG/interrupt state, and PVR
+  TA parser state with its pending geometry stream.
+- The PVR snapshot addresses the case where a first-stage checkpoint loaded from
+  the title inherited the title's parser state. The code and runtime test cover
+  that parser restoration; manual cross-scene game QA remains open.
+- Kept readers for v5/v6 files. Those older files do not have all v7 device
+  state; saving them again writes v7. Maple and VMU/memory-card state remain out
+  of scope.
+- Windows Release build succeeded and all 75 runtime test cases passed
+  (121,134 assertions). Details and state coverage:
+  [findings/save-states.md](findings/save-states.md).
+
 ## 2026-10-22 - PC options readability and input polish
 
 ### PC OPTIONS text
@@ -38,24 +56,6 @@
   show as a white strip to the right of the 4:3 picture.
 - Packages still include the local disc and translation packs for testing only.
   Builds, discs, mods, textures and font packs are not committed.
-
-### Debug checkpoints
-
-- Added local debug checkpoints (`--save-state`, `--save-state-at`, `--load-state`).
-  The file is not a VMU save and is not Flycast-compatible.
-- Version 2 stores SH-4 context, complete RAM/VRAM/ARAM/BIOS/flash/OCRAM, PVR
-  registers and the scheduler deadlines/now.
-- Verified on the Windows Release MSVC build: save the main menu at frame 800,
-  load in a new process, 240 frames presented, exit 0, 0 untranslated/unmapped.
-- A v1 file without scheduler state crashed after 120 frames; v2 fixed that.
-- Windowed hotkeys: F5 saved `slot0.state` and `slot1.state` (after F6); one
-  controlled test loaded `slot0.state` with F9 in place. The packaged build still
-  closes on F9, so this path is unstable and under investigation.
-- The controller/binding menu has rows for SAVE/LOAD/NEXT SLOT in code, but they
-  are not visible in the packaged HUD yet. The active Esc overlay must be
-  identified before closing the feature.
-- AICA/ARM7, SPG/TA internals, Maple and GD-ROM state remain pending for full
-  scene checkpoints. See [findings/save-states.md](findings/save-states.md).
 
 ### AOT first pass
 

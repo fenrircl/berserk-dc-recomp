@@ -40,13 +40,17 @@ On Windows, double-click starts the game directly without a console window. Pass
 
 ## Debug checkpoints
 
-The engine has a local debug checkpoint v2 (`--save-state`, `--save-state-at`,
-`--load-state`). It stores full guest memory, SH-4 context, PVR registers and
-scheduler state; it is not a VMU save and not Flycast-compatible. In a window,
-F5 saves the current slot, F6 selects the next slot and F9 loads it in place.
-The rows are present in the engine `InputMenu`, but they are not visible in the
-packaged Esc HUD yet; F9 is still unstable there. AICA/ARM7, SPG/TA internals,
-Maple and GD-ROM state are still pending. See
+The engine has local debug checkpoints (`--save-state`, `--save-state-at`,
+`--load-state`), separate from VMU saves and incompatible with Flycast. In a
+window, F5 saves the selected slot, F6 advances through ten slots, and F9 loads
+the selected slot in place. The controller HUD also exposes save, load and next
+slot actions. Current v7 files include SH-4 context, guest memory, PVR registers
+and TA parser/geometry stream, scheduler, AICA/ARM7/mixer audio, GD-ROM HLE, SPG
+and interrupt state. Maple and memory-card/VMU state remain outside the
+checkpoint. The v7 TA snapshot addresses a reported failure when loading a
+first-stage checkpoint from the title menu; that exact cross-scene flow still
+needs a manual end-to-end confirmation. The reader accepts v5/v6 files, which
+lack some of the current device state. See
 [findings/save-states.md](findings/save-states.md).
 
 ## HD texture packs and mods
