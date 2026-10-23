@@ -39,6 +39,18 @@
 - Packages still include the local disc and translation packs for testing only.
   Builds, discs, mods, textures and font packs are not committed.
 
+### Debug checkpoints
+
+- Added local debug checkpoints (`--save-state`, `--save-state-at`, `--load-state`).
+  The file is not a VMU save and is not Flycast-compatible.
+- Version 2 stores SH-4 context, complete RAM/VRAM/ARAM/BIOS/flash/OCRAM, PVR
+  registers and the scheduler deadlines/now.
+- Verified on the Windows Release MSVC build: save the main menu at frame 800,
+  load in a new process, 240 frames presented, exit 0, 0 untranslated/unmapped.
+- A v1 file without scheduler state crashed after 120 frames; v2 fixed that.
+- AICA/ARM7, SPG/TA internals, Maple and GD-ROM state remain pending for full
+  scene checkpoints. See [findings/save-states.md](findings/save-states.md).
+
 ### AOT first pass
 
 - Configured and built a Linux release binary with `DREAM_DEV_INTERPRETER=OFF`

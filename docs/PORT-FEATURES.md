@@ -38,6 +38,14 @@ the title menu. Native story playback after starting a game remains available.
 On Windows, double-click starts the game directly without a console window. Pass
 `--debug` to show the log console and open the launcher before starting the game.
 
+## Debug checkpoints
+
+The engine has a local debug checkpoint v2 (`--save-state`, `--save-state-at`,
+`--load-state`). It stores full guest memory, SH-4 context, PVR registers and
+scheduler state; it is not a VMU save and not Flycast-compatible. AICA/ARM7,
+SPG/TA internals, Maple and GD-ROM state are still pending. See
+[findings/save-states.md](findings/save-states.md).
+
 ## HD texture packs and mods
 
 Fully supported by the engine:

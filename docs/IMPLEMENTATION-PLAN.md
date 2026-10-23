@@ -27,6 +27,7 @@ never be uploaded, committed or redistributed.
 |---|---|---|
 | PC OPTIONS page | Done | Fifth main-menu entry, resident OPTION frame, `FONT.TEX` labels, 22/20 text sizing. See `findings/display-menu.md`. |
 | Input source | Done in test builds | A connected gamepad owns input; keyboard is ignored by default. `--keyboard` forces keyboard-only. Deck hardware validation pending. |
+| Debug checkpoints | Partial v2 | Full RAM/VRAM/ARAM/BIOS/flash/OCRAM + SH-4 + PVR registers + scheduler; menu save/load verified. AICA/ARM7, SPG internals, Maple and GD-ROM pending. |
 | Window/fullscreen/resolution/scale | Done | Windowed, borderless fullscreen, 1-8x render scale. |
 | Texture filtering | Partial | Original/nearest/bilinear. Post-process filters are still missing. |
 | Widescreen | Partial | Crop only; the current uniform flat-quad scale is not per-element HUD anchoring. True widened camera and HUD adjustment remain. |
@@ -52,7 +53,7 @@ never be uploaded, committed or redistributed.
 - [x] Define the supported release matrix: Windows x64, Linux x64, Steam Deck, macOS x64/arm64 (macOS still unverified).
 - [x] Create the [QA matrix](QA-MATRIX.md) with boot, menu, new game, combat, FMVs, saves, battle mode, PRIZE BOX, credits and endings.
 - [ ] Record a baseline report from the dev build: untranslated call targets, frame times, memory, startup time and shader-compile hitches. (Menu AOT results are in `findings/aot-closure.md`; frame-time/shader baseline still missing.)
-- [ ] Add a debug checkpoint workflow for bug hunting: VMU snapshot save/load first; evaluate a full engine save state (SH-4 context, RAM/VRAM/ARAM, PVR/SPG, AICA/ARM7, scheduler, Maple, GD-ROM) as a separate feature.
+- [x] Add a debug checkpoint workflow for bug hunting: VMU snapshot save/load first; evaluate a full engine save state (SH-4 context, RAM/VRAM/ARAM, PVR/SPG, AICA/ARM7, scheduler, Maple, GD-ROM) as a separate feature. (v2 saves memory + SH-4 + PVR registers + scheduler; AICA/ARM7, SPG internals, Maple and GD-ROM remain.)
 - [ ] Add a release build preset with `DREAM_DEV_INTERPRETER=OFF` and a separate dev preset. (The Linux release was configured manually, not as a committed preset.)
 - [ ] Add CI skeletons for Windows and Linux that build and run engine tests; no game data in CI.
 - [x] Verify `.gitignore` covers builds, `dist/`, mods, textures, extracts, disc images and media.
