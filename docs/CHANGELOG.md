@@ -50,6 +50,9 @@
 - A v1 file without scheduler state crashed after 120 frames; v2 fixed that.
 - Windowed hotkeys: F5 saved `slot0.state` and `slot1.state` (after F6), and F9
   loaded `slot0.state` in place without restarting the process.
+- The controller/binding menu now lists SAVE DEBUG STATE, LOAD DEBUG STATE and
+  NEXT DEBUG SLOT. A missing/invalid state keeps the session alive instead of
+  closing it.
 - AICA/ARM7, SPG/TA internals, Maple and GD-ROM state remain pending for full
   scene checkpoints. See [findings/save-states.md](findings/save-states.md).
 

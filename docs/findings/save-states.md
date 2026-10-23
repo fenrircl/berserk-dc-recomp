@@ -28,6 +28,15 @@ F9                 # reload the selected scenario
 The keys only save/load the debug checkpoint; the normal game/VMU save remains
 separate.
 
+The controller/binding screen (Esc/Select/F1) also lists:
+
+- `SAVE DEBUG STATE` (F5)
+- `LOAD DEBUG STATE` (F9)
+- `NEXT DEBUG SLOT` (F6)
+
+A missing or invalid state file prints an error and leaves the current session
+running; F9 no longer closes the game.
+
 ## What v2 stores
 
 - SH-4 `Ctx`: registers, banks, FPU banks, PC/PR/SR, cycles and next event.
